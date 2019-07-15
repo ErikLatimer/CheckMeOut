@@ -1,7 +1,7 @@
-<div class="row" *ngIf="isActive">
+<div class="row" (window:resize)="onResize($event)" (window:orientationchange)="onOrientationChange($event)" *ngIf="isActive">
   <div class="col-12" style="position: relative;" id="liveFeedDiv" style="font-size: 0;">
-      <video id="liveFeed" (window:resize)="onResize($event)" autoplay=true [srcObject]="videoFeedSource" [weight]="videoWidth" [height]="videoHeight"></video>
-      <canvas canvasDriver id="qrCodeZone" [width]="canvasWidth" [height]="canvasHeight"></canvas>
+      <video id="liveFeed" autoplay=true [srcObject]="videoFeedSource" [weight]="videoWidth" [height]="videoHeight"></video>
+      <canvas canvasDriver id="qrCodeZone" [style.border]="canvasStyle" [width]="canvasWidth" [height]="canvasHeight"></canvas>
       <!--
         <div id="qrCodeZoneLabel">Place the QR code within this zone</div>
       -->

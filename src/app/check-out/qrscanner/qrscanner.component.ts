@@ -24,6 +24,7 @@ export class QRScannerComponent implements OnInit {
   public videoWidth = undefined;
   public canvasWidth = 0;
   public canvasHeight = 0;
+  public canvasStyle = undefined;
   private aspectRatioWidth: number = undefined;
   private aspectRatioHeight: number = undefined;
   public readonly FACEMODE = "environment"
@@ -49,12 +50,35 @@ export class QRScannerComponent implements OnInit {
       //this.resizeCanvasDesktop(event);
     }
     else {
-      this.resizeElementsOriental(event);
+      //this.resizeElementsOriental(event);
       //this.resizeVideoStreamHeight2(event);
     }
     // Resizing canvas causes the canvas to wipe clean
     // CHANGE THIS BACK PLEASE AFTER EXPERIMENTATION
     //this.resizeCanvas(event);
+  }
+  onOrientationChange(event) {
+    let switchStorage;
+    switchStorage = this.aspectRatioHeight;
+    this.aspectRatioHeight = this.aspectRatioWidth;
+    this.aspectRatioWidth = switchStorage;
+
+    let newWidth = this.aspectRatioWidth;
+    let newHeight = this.aspectRatioHeight;
+  
+    // Navbar height does not change on resizes
+    // Assuming that navbar does not change height on orientation change...
+    let navBarDimensions = event.currentTarget.document.getElementById("nav").getBoundingClientRect();
+
+    let qrZoneParentContainerHeight: number = (
+      (newHeight) -
+      (navBarDimensions.height)
+    );
+     this.canvasHeight = qrZoneParentContainerHeight/2;
+     this.canvasWidth = newWidth/2;
+     this.videoHeight = newHeight - document.getElementById("nav").getBoundingClientRect().height;
+     // Because the body is now going off the VIEWPORT, and the height of newHeight - document.getElementById("nav").getBoundingClientRect().height;
+     // is LONGER THAN the viewport in every instance;
   }
 
   setAspectRatio() {
@@ -152,13 +176,32 @@ export class QRScannerComponent implements OnInit {
     );
     this.canvasHeight = qrZoneParentContainerHeight/2;
     this.canvasWidth = bodyDimensions.width/2;
+    this.canvasStyle = "2px dashed red";
   }
 
   resizeElementsOriental(event) {
     let newWidth = this.aspectRatioHeight;
     let newHeight = this.aspectRatioWidth;
     
+    let switchStorage;
+    switchStorage = this.aspectRatioHeight;
+    this.aspectRatioHeight = this.aspectRatioWidth;
+    this.aspectRatioWidth = switchStorage;
+    /**
+    // Navbar height does not change on resizes
+    // Assuming that navbar does not change height on orientation change...
+    let navBarDimensions = event.currentTarget.document.getElementById("nav").getBoundingClientRect();
 
+    let qrZoneParentContainerHeight: number = (
+      (newHeight) -
+      (navBarDimensions.height)
+    );
+    //console.log(bodyDimensions.height);
+    this.canvasHeight = qrZoneParentContainerHeight/2;
+    this.canvasWidth = newWidth;
+    this.videoHeight = newHeight - document.getElementById("nav").getBoundingClientRect().height;
+      **/
+     this.videoHeight = newHeight - document.getElementById("nav").getBoundingClientRect().height;
   }
 
   resizeElementsDesktop(event) {
@@ -206,15 +249,15 @@ export class QRScannerComponent implements OnInit {
 
   setVideoStreamHeight() {
     // THESE HAVE TO BE SET HERE
-    this.aspectRatioHeight = document.getElementById("root").getBoundingClientRect().height - document.getElementById("nav").getBoundingClientRect().height;
+    this.aspectRatioHeight = document.getElementById("root").getBoundingClientRect().height;
     this.aspectRatioWidth = document.getElementById("root").getBoundingClientRect().width;
     this.videoWidth = this.aspectRatioWidth;
-    this.videoHeight = this.aspectRatioHeight;
+    this.videoHeight = this.aspectRatioHeight - document.getElementById("nav").getBoundingClientRect().height;
   }
 
   async activate() {
     console.log("Activating qrscanner...");
-    this.setAspectRatio();
+    //this.setAspectRatio();
     this.enableStream();
     this.setCanvas();
     //this.drawQRZone();
