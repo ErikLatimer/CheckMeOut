@@ -42,7 +42,10 @@ export class AppComponent implements OnInit{
   }
 
   ngOnInit() {
-    
+    if ( window.orientation == "undefined" ) {
+      document.getElementById("root").style.overflow = "scroll";
+    }
+    else { }
   }
   title = 'CheckMeOut';
 }

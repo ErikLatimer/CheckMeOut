@@ -3,6 +3,7 @@ import ratio from 'aspect-ratio';
 import { RegisterRequest, PassRequest, TokenRegistry } from './../../../lib/TokenInterfaces';
 import { Component, OnInit, Output, EventEmitter, Input, SimpleChanges, OnChanges } from '@angular/core';
 import { CanvasDriverDirective } from './../canvas-driver.directive';
+import {ScreenDimension} from './../../../lib/screenDimensions';
 
 @Component({
   selector: 'app-qrscanner',
@@ -25,6 +26,7 @@ export class QRScannerComponent implements OnInit {
   public canvasWidth = 0;
   public canvasHeight = 0;
   public canvasStyle = undefined;
+  private screenDimension: ScreenDimension = undefined;
   private aspectRatioWidth: number = undefined;
   private aspectRatioHeight: number = undefined;
   public readonly FACEMODE = "environment"
@@ -81,21 +83,7 @@ export class QRScannerComponent implements OnInit {
      // is LONGER THAN the viewport in every instance;
   }
 
-  setAspectRatio() {
-    let aspectRatioString: string = ratio(
-      (window.screen.width * window.devicePixelRatio),
-      (window.screen.height * window.devicePixelRatio)
-    );
-    let aspectArray: number[] = [];
-    aspectRatioString.split(":").forEach((string) => {
-      console.log(string);
-      aspectArray.push(parseInt(string));
-    });
-    console.log(aspectArray);
-    // Aspect Ratio: WDITH:HEIGHT i.e. 16:9
-    this.aspectRatioWidth = aspectArray[0];
-    this.aspectRatioHeight = aspectArray[1];
-  }
+  setScreenDimension() {this.screenDimension = new ScreenDimension();}
 
   drawQRZone() {
     // The height of the QRZone is always going to be half of the height of its container
@@ -251,8 +239,8 @@ export class QRScannerComponent implements OnInit {
     // THESE HAVE TO BE SET HERE
     this.aspectRatioHeight = document.getElementById("root").getBoundingClientRect().height;
     this.aspectRatioWidth = document.getElementById("root").getBoundingClientRect().width;
-    this.videoWidth = this.aspectRatioWidth;
-    this.videoHeight = this.aspectRatioHeight - document.getElementById("nav").getBoundingClientRect().height;
+    this.videoWidth = document.getElementById("root").getBoundingClientRect().width;
+    this.videoHeight = document.getElementById("root").getBoundingClientRect().height - document.getElementById("nav").getBoundingClientRect().height;
   }
 
   async activate() {

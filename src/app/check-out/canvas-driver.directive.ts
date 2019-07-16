@@ -1,5 +1,5 @@
-import { Directive, OnInit, AfterViewChecked } from '@angular/core';
-import ratio from 'aspect-ratio';
+import { Directive, OnInit, AfterViewChecked, OnDestroy } from '@angular/core';
+import jsQR from "jsqr";
 
 @Directive({
   exportAs: 'canvasDriver',
@@ -7,86 +7,78 @@ import ratio from 'aspect-ratio';
 })
 export class CanvasDriverDirective {
 
-  private aspectRatioWidth: number = undefined;
-  private aspectRatioHeight: number = undefined;
-  private qrZoneHasBeenDrawn: boolean = false;
-  public height: number = 200;
+  private readonly LIVEFEEDID = "liveFeed";
+  private readonly QRZONEID = "qrCodeZone";
+  private readonly HIDDENCANVASID = "hiddenCanvas";
+
+  private readonly SCANSPERSECOND: number = 2;
+  private readonly TIMEINTERVAL: number = ( 1000 * this.SCANSPERSECOND );
+
+  private timerID = undefined;
+
+  private context: CanvasRenderingContext2D = undefined;
+
   constructor() { }
   ngOnInit() {
     console.log("canvasDriver initialized successfully!");
-    this.setAspectRatio();
+    //this.scanningProtocol();
   }
   ngAfterViewChecked() {
-    //Event later on needs to be incorporated like in qrscanner component
-    //Like an after oreintation change height and width need to be incorporated.
-    // For now the QR zone on mobile devices in landscape will only take into
-    // account the viewport of the immediate flip, not the rest of the page.
-    /**
-    if (!(this.qrZoneHasBeenDrawn)) {
-      this.drawQRZone();
-      this.qrZoneHasBeenDrawn = true;
-    }
-    if (typeof window.orientation == "undefined") {
-      this.drawQRZone();
-    }
-    */
+    //this.scanningProtocol();
   }
 
-  drawQRZone() {
-    let bodyDimensions = document.getElementById("root").getBoundingClientRect();
-    let navBarDimensions = document.getElementById("nav").getBoundingClientRect();
+  scanningProtocol() {
+    // Do not forget to clear this interval when the view clears. Maybe clear it in ngOnDestroy()?
+    let canvas = <HTMLCanvasElement>document.getElementById(this.QRZONEID);
+    this.context = canvas.getContext("2d");
+    console.log("Initializing scanning protocol...");
+    this.timerID = setInterval(<TimerHandler><unknown>this.scanQRZone(), this.TIMEINTERVAL);
+  }
 
-    let qrZoneParentContainerHeight: number = (
-      (bodyDimensions.height) -
-      (navBarDimensions.height)
+  scanQRZone() {
+    // Guaranteed to initialize after view is rendered
+    //this.clearHiddenCanvas();
+    let videoElement: HTMLVideoElement = <HTMLVideoElement>document.getElementById(this.LIVEFEEDID);
+
+    let qrCodeZoneDimensions: ClientRect = document.getElementById(this.QRZONEID).getBoundingClientRect();
+    console.log(`qrCodeZoneDimensions:${qrCodeZoneDimensions}`);
+
+    let qrCodeZoneSW: number = qrCodeZoneDimensions.width;
+    console.log(`qrCodeZoneSW:${qrCodeZoneSW}`);
+    let qrCodeZoneSH: number = qrCodeZoneDimensions.height;
+    console.log(`qrCodeZoneSH:${qrCodeZoneSH}`);
+    let qrCodeZoneSX: number = qrCodeZoneDimensions.left;
+    console.log(`qrCodeZoneSX:${qrCodeZoneSX}`);
+    let qrCodeZoneSY: number = qrCodeZoneDimensions.top;
+    console.log(`qrCodeZoneSY:${qrCodeZoneSY}`);
+/**
+    this.context.drawImage(
+      videoElement, qrCodeZoneSX, qrCodeZoneSY, qrCodeZoneSW, qrCodeZoneSH, qrCodeZoneSX, qrCodeZoneSY, qrCodeZoneSW, qrCodeZoneSH
     );
-
-    //document.getElementById("qrCodeZone").style.top = `${navBarDimensions.height}px`;
-    //document.getElementById("qrCodeZone").style.left = '0px';
-
-    // The height of the QRZone is always going to be half of the height of its container
-    let qrZoneHeight: number = (qrZoneParentContainerHeight / 2);
-    // The width of the QRZone will be the same as the height, multiplied by aspect ratio to achieve a good looking square
-    let qrZoneWidth: number  = qrZoneHeight;
-    //(qrZoneHeight*(this.aspectRatioHeight/this.aspectRatioWidth));
-
-    // Now that we have our height and width, we must position our square to be in the middle of the screen
-    let qrZoneX: number = (
-      ((bodyDimensions.width) / 2) -
-      (qrZoneWidth / 2)
-    );
-    let qrZoneY: number = (
-      ((qrZoneParentContainerHeight) / 2) -
-      (qrZoneHeight / 2)
+**/
+    
+    this.context.drawImage(
+      videoElement, 0, 0, qrCodeZoneSW, qrCodeZoneSH
     );
     
-    // Now lets draw the rectangle
-    console.log(`qrZoneHeight:${qrZoneHeight}`);
-    console.log(`qrZoneWidth:${qrZoneWidth}`);
-    console.log(`qrZoneX:${qrZoneX}`);
-    console.log(`qrZoneY:${qrZoneY}`);
-    let canvas: HTMLCanvasElement = <HTMLCanvasElement> document.getElementById("qrCodeZone");
-    console.log(canvas.width);
-    let context: CanvasRenderingContext2D = canvas.getContext('2d');
-    console.log(context);
-    console.log("about to Draw Rectangle");
-    context.strokeStyle = "#77aafc";
-    context.strokeRect(qrZoneX, qrZoneY, qrZoneWidth, qrZoneHeight);
+    let imageData = new Uint8ClampedArray();
+
+    imageData = <Uint8ClampedArray><unknown>this.context.getImageData(qrCodeZoneSX, qrCodeZoneSY, qrCodeZoneSW, qrCodeZoneSH);
+    console.log(`Image Data:`);
+    console.log(imageData);
+    let code = jsQR(<Uint8ClampedArray><unknown>imageData, qrCodeZoneSW, qrCodeZoneSH);
+
+    if (code) {console.log("WE FOUND ONE!!!!!");}
+    else {console.log("Nope Nothing");}
   }
 
-  setAspectRatio() {
-    let aspectRatioString: string = ratio(
-      (window.screen.width * window.devicePixelRatio),
-      (window.screen.height * window.devicePixelRatio)
-    );
-    let aspectArray: number[] = [];
-    aspectRatioString.split(":").forEach((string) => {
-      console.log(string);
-      aspectArray.push(parseInt(string));
-    });
-    console.log(aspectArray);
-    // Aspect Ratio: WDITH:HEIGHT i.e. 16:9
-    this.aspectRatioWidth = aspectArray[0];
-    this.aspectRatioHeight = aspectArray[1];
+  clearHiddenCanvas() {
+    let qrCodeZoneDimensions: ClientRect = document.getElementById(this.QRZONEID).getBoundingClientRect();
+    this.context.clearRect(qrCodeZoneDimensions.left, qrCodeZoneDimensions.top, qrCodeZoneDimensions.width, qrCodeZoneDimensions.height);
   }
+
+  ngOnDestroy() {
+    clearInterval(this.timerID);
+  }
+
 }

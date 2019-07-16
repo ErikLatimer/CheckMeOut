@@ -1,26 +1,11 @@
 <div class="row" (window:resize)="onResize($event)" (window:orientationchange)="onOrientationChange($event)" *ngIf="isActive">
   <div class="col-12" style="position: relative;" id="liveFeedDiv" style="font-size: 0;">
-      <video id="liveFeed" autoplay=true [srcObject]="videoFeedSource" [weight]="videoWidth" [height]="videoHeight"></video>
+      <video id="liveFeed" autoplay [srcObject]="videoFeedSource" [weight]="videoWidth" [height]="videoHeight"></video>
       <canvas canvasDriver id="qrCodeZone" [style.border]="canvasStyle" [width]="canvasWidth" [height]="canvasHeight"></canvas>
+      <!--<canvas id="hiddenCanvas" style="visibility: hidden; z-index: 0; margin: 0; padding: 0; top: -30%;"></canvas>-->
       <!--
         <div id="qrCodeZoneLabel">Place the QR code within this zone</div>
       -->
   </div>
 </div>
-<!--
-<div class="row" *ngIf="isActive">
-  <div class="col-12" id="qCodeZone">
-      <div id="qrCodeZoneLabel">Place the QR code within this zone</div>
-  </div>
-</div> 
--->
-<!-- 
-    <video id="liveFeed" autoplay=true [srcObject]="videoFeedSource" [width]="videoWidth" [height]="videoHeight">
-       <video id="liveFeed" autoplay=true [srcObject]="videoFeedSource">
-  </video>
-
-  <div id="qrCodeZone">
-      <div id="qrCodeZoneLabel">Place the QR code within this zone</div>
-  </div>
-    <div id="qrCodeZoneLabel">Place the QR code within this zone</div>
--->
+<!-- You have to set the controls to true if you want it to work on ios -->
