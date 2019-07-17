@@ -1,9 +1,10 @@
+
 import uuidv1 from 'uuid/v1';
 import ratio from 'aspect-ratio';
 import { RegisterRequest, PassRequest, TokenRegistry } from './../../../lib/TokenInterfaces';
 import { Component, OnInit, Output, EventEmitter, Input, SimpleChanges, OnChanges } from '@angular/core';
 import { CanvasDriverDirective } from './../canvas-driver.directive';
-import {ScreenDimension} from './../../../lib/screenDimensions';
+import { ScreenDimensionService } from './../../screen-dimensions.service';
 
 @Component({
   selector: 'app-qrscanner',
@@ -26,17 +27,20 @@ export class QRScannerComponent implements OnInit {
   public canvasWidth = 0;
   public canvasHeight = 0;
   public canvasStyle = undefined;
-  private screenDimension: ScreenDimension = undefined;
   private aspectRatioWidth: number = undefined;
   private aspectRatioHeight: number = undefined;
-  public readonly FACEMODE = "environment"
-  constructor() { }
+  public readonly FACEMODE = "environment";
+
+// Inject the ScreenDimensionService
+
+  constructor(private screenDimensionService: ScreenDimensionService) { }
 
   ngOnInit() {
     this.registerAsTokenBearer.emit({
       tokenBearerUUID: this.tokenBearerUUID,
       tokenBearerName: this.tokenBearerName
     });
+    console.log(`and in qrscanner component ${this.screenDimensionService.getInnerWindowHeight()}`);
   }
   ngOnChanges(changes: SimpleChanges) {
     console.log("Onchanges...");
@@ -58,6 +62,21 @@ export class QRScannerComponent implements OnInit {
     // Resizing canvas causes the canvas to wipe clean
     // CHANGE THIS BACK PLEASE AFTER EXPERIMENTATION
     //this.resizeCanvas(event);
+  }
+  resizeElementsDesktop(event) {
+     // These Dimensions are calculated. Remember that event.target.innerheight is just the viewport
+     let bodyDimensions = event.currentTarget.document.getElementById("root").getBoundingClientRect();
+     // Navbar height does not change on resizes
+     let navBarDimensions = event.currentTarget.document.getElementById("nav").getBoundingClientRect();
+ 
+     let qrZoneParentContainerHeight: number = (
+       (bodyDimensions.height) -
+       (navBarDimensions.height)
+     );
+     //console.log(bodyDimensions.height);
+     this.canvasHeight = qrZoneParentContainerHeight/2;
+     this.canvasWidth = event.target.innerWidth/2;
+     this.videoHeight = event.target.innerHeight - document.getElementById("nav").getBoundingClientRect().height;
   }
   onOrientationChange(event) {
     let switchStorage;
@@ -82,8 +101,30 @@ export class QRScannerComponent implements OnInit {
      // Because the body is now going off the VIEWPORT, and the height of newHeight - document.getElementById("nav").getBoundingClientRect().height;
      // is LONGER THAN the viewport in every instance;
   }
+  resizeElementsOriental(event) {
+    let newWidth = this.aspectRatioHeight;
+    let newHeight = this.aspectRatioWidth;
+    
+    let switchStorage;
+    switchStorage = this.aspectRatioHeight;
+    this.aspectRatioHeight = this.aspectRatioWidth;
+    this.aspectRatioWidth = switchStorage;
+    /**
+    // Navbar height does not change on resizes
+    // Assuming that navbar does not change height on orientation change...
+    let navBarDimensions = event.currentTarget.document.getElementById("nav").getBoundingClientRect();
 
-  setScreenDimension() {this.screenDimension = new ScreenDimension();}
+    let qrZoneParentContainerHeight: number = (
+      (newHeight) -
+      (navBarDimensions.height)
+    );
+    //console.log(bodyDimensions.height);
+    this.canvasHeight = qrZoneParentContainerHeight/2;
+    this.canvasWidth = newWidth;
+    this.videoHeight = newHeight - document.getElementById("nav").getBoundingClientRect().height;
+      **/
+     this.videoHeight = newHeight - document.getElementById("nav").getBoundingClientRect().height;
+  }
 
   drawQRZone() {
     // The height of the QRZone is always going to be half of the height of its container
@@ -107,6 +148,8 @@ export class QRScannerComponent implements OnInit {
     context.strokeRect(qrZoneX, qrZoneY, qrZoneWidth, qrZoneHeight);
   }
 
+
+  //! WE ARE DEFINITELY KEEPING THIS METHOD
   async enableStream() {
     if (typeof window.navigator.mediaDevices == "undefined") {
       console.error("ERROR. CANNOT ACQUIRE MEDIA DEVICES BECAUSE CONNECTION IS UNSECURE");
@@ -167,46 +210,9 @@ export class QRScannerComponent implements OnInit {
     this.canvasStyle = "2px dashed red";
   }
 
-  resizeElementsOriental(event) {
-    let newWidth = this.aspectRatioHeight;
-    let newHeight = this.aspectRatioWidth;
-    
-    let switchStorage;
-    switchStorage = this.aspectRatioHeight;
-    this.aspectRatioHeight = this.aspectRatioWidth;
-    this.aspectRatioWidth = switchStorage;
-    /**
-    // Navbar height does not change on resizes
-    // Assuming that navbar does not change height on orientation change...
-    let navBarDimensions = event.currentTarget.document.getElementById("nav").getBoundingClientRect();
+  
 
-    let qrZoneParentContainerHeight: number = (
-      (newHeight) -
-      (navBarDimensions.height)
-    );
-    //console.log(bodyDimensions.height);
-    this.canvasHeight = qrZoneParentContainerHeight/2;
-    this.canvasWidth = newWidth;
-    this.videoHeight = newHeight - document.getElementById("nav").getBoundingClientRect().height;
-      **/
-     this.videoHeight = newHeight - document.getElementById("nav").getBoundingClientRect().height;
-  }
-
-  resizeElementsDesktop(event) {
-     // These Dimensions are calculated. Remember that event.target.innerheight is just the viewport
-     let bodyDimensions = event.currentTarget.document.getElementById("root").getBoundingClientRect();
-     // Navbar height does not change on resizes
-     let navBarDimensions = event.currentTarget.document.getElementById("nav").getBoundingClientRect();
- 
-     let qrZoneParentContainerHeight: number = (
-       (bodyDimensions.height) -
-       (navBarDimensions.height)
-     );
-     //console.log(bodyDimensions.height);
-     this.canvasHeight = qrZoneParentContainerHeight/2;
-     this.canvasWidth = event.target.innerWidth/2;
-     this.videoHeight = event.target.innerHeight - document.getElementById("nav").getBoundingClientRect().height;
-  }
+  
 
   resizeCanvasDesktop(event) {
     // These Dimensions are calculated. Remember that event.target.innerheight is just the viewport

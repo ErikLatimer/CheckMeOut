@@ -1,3 +1,4 @@
+import { ScreenDimensionService } from './screen-dimensions.service';
 import { PassRequest, RegisterRequest, TokenRegistry, YellowBook } from './../lib/TokenInterfaces';
 import { Component, OnInit } from '@angular/core';
 
@@ -7,7 +8,7 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit{
-  constructor() {}
+  constructor(private screenDimensionService: ScreenDimensionService) {}
   private readonly INITIAL_TOKEN_BEARER_NAME: string = "qrscanner";
   private registry: TokenRegistry = {};
   private registryYellowBook: YellowBook = {};
@@ -42,10 +43,12 @@ export class AppComponent implements OnInit{
   }
 
   ngOnInit() {
-    if ( window.orientation == "undefined" ) {
-      document.getElementById("root").style.overflow = "scroll";
+    this.screenDimensionService.init();
+    this.screenDimensionService._test();
+   console.log(this.screenDimensionService.getInnerWindowHeight());
+    if (typeof window.orientation == "undefined" ) {
     }
-    else { }
+    else { document.getElementById("root").style.overflow = "scroll"; }
   }
   title = 'CheckMeOut';
 }
