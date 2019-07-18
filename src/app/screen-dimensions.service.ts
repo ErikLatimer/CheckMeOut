@@ -454,7 +454,7 @@ export class ScreenDimensionService {
         }
       }
     }
-    else {return this.windowInnerDimensions.height;}
+    else {return this.windowInnerDimensions.width;}
   }
 
   public getInnerWindowHeight() {

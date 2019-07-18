@@ -44,8 +44,8 @@ export class AppComponent implements OnInit{
 
   ngOnInit() {
     this.screenDimensionService.init();
-    this.screenDimensionService._test();
-   console.log(this.screenDimensionService.getInnerWindowHeight());
+    this.screenDimensionService.listenToResize();
+    this.screenDimensionService.listenToOrientationChange();
     if (typeof window.orientation == "undefined" ) {
     }
     else { document.getElementById("root").style.overflow = "scroll"; }

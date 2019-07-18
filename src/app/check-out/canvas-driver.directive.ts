@@ -21,7 +21,7 @@ export class CanvasDriverDirective {
   constructor() { }
   ngOnInit() {
     console.log("canvasDriver initialized successfully!");
-    //this.scanningProtocol();
+    this.scanningProtocol();
   }
   ngAfterViewChecked() {
     //this.scanningProtocol();
@@ -31,8 +31,9 @@ export class CanvasDriverDirective {
     // Do not forget to clear this interval when the view clears. Maybe clear it in ngOnDestroy()?
     let canvas = <HTMLCanvasElement>document.getElementById(this.QRZONEID);
     this.context = canvas.getContext("2d");
+    this.context.fillRect(0,0, canvas.getBoundingClientRect().width, canvas.getBoundingClientRect().height);
     console.log("Initializing scanning protocol...");
-    this.timerID = setInterval(<TimerHandler><unknown>this.scanQRZone(), this.TIMEINTERVAL);
+    //this.timerID = setInterval(<TimerHandler><unknown>this.scanQRZone(), this.TIMEINTERVAL);
   }
 
   scanQRZone() {
