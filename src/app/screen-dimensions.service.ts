@@ -544,6 +544,8 @@ export class ScreenDimensionService {
     else {return this.screenDimensions.width;}
   }
 
+  public isOriental() {return this.deviceIsOriental;}
+
 
 
 }

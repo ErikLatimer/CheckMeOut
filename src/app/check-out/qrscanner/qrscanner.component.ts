@@ -111,13 +111,38 @@ export class QRScannerComponent implements OnInit {
       let dw: number = canvasDimensions.width//this.canvasWidth;
       let sh: number = canvasDimensions.height;//this.canvasHeight;
       let dh: number = canvasDimensions.height;//this.canvasHeight;
-      let fullHeight = this.screenDimensionService.getScreenHeight()-(window.outerHeight-this.screenDimensionService.getInnerWindowHeight());
+      let fullscreenInnerHeight = this.screenDimensionService.getScreenHeight()-(window.outerHeight-this.screenDimensionService.getInnerWindowHeight());
       //this.screenDimensionService.getInnerWindowHeight();
-      let fullWidth = this.screenDimensionService.getScreenWidth();
+      let fullscreenWidth = this.screenDimensionService.getScreenWidth();
       //console.log(this.canvasHeight);
       // Now let's draw the image on the canvas
       //console.log(`Source width ${sw}`);
-      canvasContext.drawImage(
+      
+      if(!(this.screenDimensionService.isOriental())) {
+        // Don't ask me why these values are the way they are XD Because I have no idea I know they just
+        // work on desktop
+        canvasContext.drawImage(
+          videoElementInstance,
+          (sx - ((sw/2)*(this.screenDimensionService.getInnerWindowWidth()/this.screenDimensionService.getScreenWidth()))),
+          sy - ((sh/1.5)*((this.screenDimensionService.getInnerWindowHeight())/(this.screenDimensionService.getScreenHeight()-(window.outerHeight-this.screenDimensionService.getInnerWindowHeight())))),
+
+          fullscreenWidth- (fullscreenWidth/2),
+  
+          //((Math.pow((sy/2),2))/(this.screenDimensionService.getScreenHeight()-(window.outerHeight-this.screenDimensionService.getInnerWindowHeight()))),
+          //(sw)*(this.screenDimensionService.getInnerWindowWidth()/this.screenDimensionService.getScreenWidth()),
+          //((Math.pow(this.screenDimensionService.getInnerWindowWidth(),2))/(this.screenDimensionService.getScreenWidth())),
+          //this.screenDimensionService.getScreenHeight()*2.5,
+  
+          fullscreenInnerHeight,
+  
+          //((Math.pow(this.screenDimensionService.getInnerWindowHeight(),2))/(this.screenDimensionService.getScreenHeight()-(window.outerHeight-this.screenDimensionService.getInnerWindowHeight()))),
+          0,0,
+          dw+40,
+          (dh*1.5)
+        );
+      }
+      else{
+        canvasContext.drawImage(
         videoElementInstance,sx,sy,
         //sx,//(sx - ((sw/2)*(this.screenDimensionService.getInnerWindowWidth()/this.screenDimensionService.getScreenWidth()))),
         //sy - ((sh/2.55)*((this.screenDimensionService.getInnerWindowHeight())/(this.screenDimensionService.getScreenHeight()-(window.outerHeight-this.screenDimensionService.getInnerWindowHeight())))),
@@ -137,6 +162,9 @@ export class QRScannerComponent implements OnInit {
         //dw+40,
         //(dh*1.5)
       );
+      }
+
+      
       //console.log(sx,sy);
       //console.log("Image drawn");
       // Now that we have our canvas populated, let's extract the data in an ImageData form.
@@ -154,11 +182,12 @@ export class QRScannerComponent implements OnInit {
       }
       else{
         console.log("We found a code!!!!!");
-        console.log(code.data);
         this.canvasStyle = "5px solid lightgreen";
+        console.log(code.data);
       }
 
       // Now Let's clear the canvas again so the user doesn't have to sense a visual representation of this process
+      // Comment the line below out to see the actual qr scanning zone
       canvasContext.clearRect(0,0,this.canvasWidth,this.canvasHeight);
 
       // Now repeat...
