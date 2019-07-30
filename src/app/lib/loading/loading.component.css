@@ -1,0 +1,22 @@
+.spinner-border {
+  position: absolute;
+  z-index: 3;
+  left: 45%;
+  top:45%;
+  width: 8rem;
+  height: 8rem;
+}
+
+/**
+  *
+  *
+  *
+  left: 50%;
+  width: 25%;
+  height:25%;
+  animation-iteration-count: 1;
+  *
+  *
+  *
+  *
+  */
