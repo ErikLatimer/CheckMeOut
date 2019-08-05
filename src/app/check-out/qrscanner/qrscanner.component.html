@@ -1,11 +1,12 @@
 <div class="row" *ngIf="isActive">
-    <div class="col-12" style="position: relative;" id="liveFeedDiv" style="font-size: 0;">
-        <video id="liveFeed" autoplay [srcObject]="videoFeedSource" [height]="videoHeight"></video>
+    <div class="col-12" id="liveFeedDiv" style="font-size: 0;">
+        <video id="liveFeed" autoplay playsinline [srcObject]="videoFeedSource" [height]="videoHeight"></video>
         <canvas canvasDriver id="qrCodeZone" [style.border]="canvasStyle" [width]="canvasWidth" [height]="canvasHeight"></canvas>
         <!--<canvas id="hiddenCanvas" style="visibility: hidden; z-index: 0; margin: 0; padding: 0; top: -30%;"></canvas>-->
         <!--
           <div id="qrCodeZoneLabel">Place the QR code within this zone</div>
         -->
     </div>
+    <app-loading [init]="loading" [destroy]="stopLoading"></app-loading>
 </div>
 <!-- You have to set the controls to true if you want it to work on ios -->

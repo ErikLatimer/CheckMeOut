@@ -2,9 +2,9 @@ import uuidv1 from 'uuid/v1';
 import ratio from 'aspect-ratio';
 import { RegisterRequest, PassRequest, TokenRegistry } from './../../../lib/TokenInterfaces';
 import { Component, OnInit, Output, EventEmitter, Input, SimpleChanges, OnChanges, AfterViewChecked } from '@angular/core';
-import { CanvasDriverDirective } from './../canvas-driver.directive';
-import { ScreenDimensionService } from './../../screen-dimensions.service';
-import jsQR from 'jsqr';
+import { ScreenDimensionService } from '../../lib/screen-dimension.service';
+import { PostGrestService } from './../../lib/post-grest.service';
+import jsQR, { QRCode } from 'jsqr';
 
 @Component({
   selector: 'app-qrscanner',
@@ -18,31 +18,37 @@ export class QRScannerComponent implements OnInit {
 
   @Input() registryCopy: TokenRegistry;
 
-  private readonly tokenBearerUUID = uuidv1();
-  private readonly tokenBearerName = "qrscanner";
-  public isActive = false;
-  public videoFeedSource = undefined;
-  public videoHeight = undefined;
-  public videoWidth = undefined;
-  public canvasWidth = 0;
-  public canvasHeight = 0;
-  public canvasStyle = undefined;
-  private navbarHeight = undefined;
-  private readonly NAVBAR_ID = "nav";
-  private readonly CANVAS_ID = "qrCodeZone";
-  private readonly VIDEO_ID = "liveFeed";
-  private readonly TWO_D_CONTEXT = '2d';
-  private readonly CANVAS_PARENT_ID = "liveFeedDiv";
-  public readonly FACEMODE = "environment";
+  private readonly tokenBearerUUID: string = uuidv1();
+  private readonly tokenBearerName: string = "qrscanner";
+  public isActive: boolean = false;
+  public videoFeedSource: MediaStream = undefined;
+  public videoHeight: number = undefined;
+  public videoWidth: number = undefined;
+  public canvasWidth: number = 0;
+  public canvasHeight: number = 0;
+  public canvasStyle: string = undefined;
+  private navbarHeight: number = undefined;
+  private readonly NAVBAR_ID: string = "nav";
+  private readonly CANVAS_ID: string = "qrCodeZone";
+  private readonly VIDEO_ID: string = "liveFeed";
+  private readonly TWO_D_CONTEXT: string = '2d';
+  private readonly CANVAS_PARENT_ID: string = "liveFeedDiv";
+  public readonly FACEMODE: string = "environment";
   private qrProtocolInitiated = false;
-  private readonly QR_PROTOCOL_TIME_PER_SECOND: number = .75;
+  private readonly COLOR_SNAP_SECONDS: number = 2.3;
+  private readonly COLOR_SNAP_INTERVAL: number = this.COLOR_SNAP_SECONDS * 1000;
+  private colorTimeOutActive: boolean = false;
+  private readonly QR_PROTOCOL_TIME_PER_SECOND: number = .50;
   private readonly QR_PROTOCOL_SCAN_INTERVAL = this.QR_PROTOCOL_TIME_PER_SECOND * 1000;
-  private timer_id;
+  private timer_id: number;
+  private isProcessing: boolean = false;
+  public loading: boolean = false;
+  public stopLoading: boolean = false;
 
 
 // Inject the ScreenDimensionService
 
-  constructor(private screenDimensionService: ScreenDimensionService) { }
+  constructor(private postgrestService: PostGrestService, private screenDimensionService: ScreenDimensionService) { }
 
   ngOnInit() {
     this.registerAsTokenBearer.emit({
@@ -62,7 +68,7 @@ export class QRScannerComponent implements OnInit {
         console.log("hello");
         this.timer_id = setInterval(
          <TimerHandler><unknown>this._qrCodeScanProtocol.bind(this),
-          16.66667
+          this.QR_PROTOCOL_SCAN_INTERVAL
         );
         this.qrProtocolInitiated = true;
       }
@@ -73,6 +79,7 @@ export class QRScannerComponent implements OnInit {
   }
 
   private _qrCodeScanProtocol(): boolean {
+    if (this.isProcessing) {return false;}
     let canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById(this.CANVAS_ID);
     // If the canvas context isn't ready yet...
     if ( canvas === null ) {
@@ -82,6 +89,7 @@ export class QRScannerComponent implements OnInit {
     } 
     else {
       // If the canvas context is ready to be worked with...
+      // @ts-ignore
       let canvasContext: CanvasRenderingContext2D = canvas.getContext(this.TWO_D_CONTEXT);
       /**
        * First draw the current video frame, that falls within the canvas boundaries, onto the canvas (Sub-Routine)
@@ -176,14 +184,48 @@ export class QRScannerComponent implements OnInit {
       let code = jsQR(imageData.data, sw,sh);
 
       // Now let's check if we found a code
-      if(!(code)){
-        //console.log("Oh no, no code here...");
-        this.canvasStyle = "2px dashed red";
-      }
-      else{
+      if(code){
+        this.isProcessing = true;
         console.log("We found a code!!!!!");
+        console.log("Executing...");
+        setTimeout(
+          function() {
+            this.startLoading();
+          }.bind(this),
+          300
+        );
+        setTimeout(
+          function() {
+            //window.navigator.vibrate(1000);
+            
+          }.bind(this),
+          200
+        );
+        // This is in place to prevent a scenario where the processing for the QR code is done
+        // BEFORE the color timeout is complete.
+        //! This property is Angular bound to the video element
         this.canvasStyle = "5px solid lightgreen";
+        if(!(this.colorTimeOutActive)) {
+          console.log("Color TimeOut Inactive");
+          this.colorTimeOutActive = true;
+          setTimeout(
+            function() {
+              console.log("Came to set color back");
+              //! This property is Angular bound to the video element
+              this.canvasStyle = "2px dashed red";
+              this.colorTimeOutActive = false;
+            }.bind(this),
+            this.COLOR_SNAP_INTERVAL
+          );
+        }
+        // qrcode.data by default is of string type
         console.log(code.data);
+
+        // If processQRCode returns truthy, initiate the next screen and somehow pass the infoObject returned
+        // If processQRCode does not return truthy, perform the error alert screen effect for a couple of seconds
+        // so that the user can see what went wrong.
+        // Either way, destroy the loading component when processQRCode returns
+        this.processQRCode(code);
       }
 
       // Now Let's clear the canvas again so the user doesn't have to sense a visual representation of this process
@@ -195,8 +237,40 @@ export class QRScannerComponent implements OnInit {
     }
   }
 
+  async processQRCode(qrCode: QRCode): Promise<Object> {
+    
+    const resultingDocument: Object = await this.postgrestService.retrieveDocumentByUUID(qrCode.data);
+    if (typeof resultingDocument == "undefined") {
+      console.warn("Document not found under user query");
+      console.log("Finished");
+      this.isProcessing = false;
+      this.destroyLoader();
+      return undefined;
+    }
+    else if (resultingDocument) {
+      console.log("Results:");
+      console.log(resultingDocument);
+      console.log("Finished");
+      this.isProcessing = false;
+      this.destroyLoader();
+      return resultingDocument;
+    }
+    else {
+      console.error("A request error has occured");
+      console.log("Finished");
+      this.isProcessing = false;
+      this.destroyLoader();
+      return null;
+    }
+    // The logic below is probably going to have to be in a callback most likely
+    console.log("Finished");
+    this.isProcessing = false;
+  }
+
+
   async activate() {
     console.log("Activating qrscanner...");
+    //! Global variable
     this.navbarHeight = document.getElementById(this.NAVBAR_ID).getBoundingClientRect().height;
     this.enableStream();
     this.setCanvasDimensionsAndStyle();
@@ -204,6 +278,7 @@ export class QRScannerComponent implements OnInit {
     this.screenDimensionService.subscribeToResize(()=>{this.resizeLayout();});
 
   }
+
 
   async enableStream() {
     if (typeof window.navigator.mediaDevices == "undefined") {
@@ -253,8 +328,11 @@ export class QRScannerComponent implements OnInit {
   }
 
   setCanvasDimensionsAndStyle() {
+    //! This property is Angular bound to the video element
     this.canvasHeight = ((this.screenDimensionService.getInnerWindowHeight() - this.navbarHeight)/2);
+    //! This property is Angular bound to the video element
     this.canvasWidth = this.screenDimensionService.getInnerWindowWidth()/2;
+    //! This property is Angular bound to the video element
     this.canvasStyle = "2px dashed red";
   }
   setVideoDimensions() {
@@ -263,9 +341,33 @@ export class QRScannerComponent implements OnInit {
   }
   
   resizeLayout() {
+    //! Global variable
     this.navbarHeight = document.getElementById(this.NAVBAR_ID).getBoundingClientRect().height;
     this.setVideoDimensions();
     this.setCanvasDimensionsAndStyle();
+  }
+
+  public destroyLoader() {
+    console.log("Destroy loader called...");
+    if (this.loading) {
+      this.loading = false;
+      this.stopLoading = true;
+    }
+    else {
+      setTimeout(
+        function(){
+          this.loading = false;
+          this.stopLoading = true;
+        }.bind(this),
+        400
+      );
+    }
+  }
+
+  public startLoading() {
+    console.log("Start loading called...");
+    this.loading = true;
+    this.stopLoading = false;
   }
 
 }

@@ -1,19 +1,24 @@
 import { NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ButtonsModule, WavesModule } from 'angular-bootstrap-md';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { QRScannerComponent } from './qrscanner/qrscanner.component';
-import { MDBBootstrapModule } from 'angular-bootstrap-md';
-import { CanvasDriverDirective } from './canvas-driver.directive';
-
+import { LibModule } from './../lib/lib.module';
+//import { CheckOutFormComponent } from './check-out-form/check-out-form.component';
 
 @NgModule({
-  declarations: [QRScannerComponent, CanvasDriverDirective],
+  declarations: [QRScannerComponent, /**CheckOutFormComponent*/],
   imports: [
     CommonModule,
-    MDBBootstrapModule.forRoot(),
+    LibModule,
+    ButtonsModule,
+    WavesModule.forRoot(),
+    MatDatepickerModule,
   ],
   schemas: [ NO_ERRORS_SCHEMA ],
   exports: [
-    QRScannerComponent
+    QRScannerComponent,
+    //CheckOutFormComponent
   ]
 })
 export class CheckOutModule { }
