@@ -197,7 +197,7 @@ export class QRScannerComponent implements OnInit {
         setTimeout(
           function() {
             //window.navigator.vibrate(1000);
-            
+
           }.bind(this),
           200
         );
@@ -274,9 +274,10 @@ export class QRScannerComponent implements OnInit {
     this.navbarHeight = document.getElementById(this.NAVBAR_ID).getBoundingClientRect().height;
     this.enableStream();
     this.setCanvasDimensionsAndStyle();
-    this.screenDimensionService.subscribeToOrientationChange(()=>{this.resizeLayout();});
-    this.screenDimensionService.subscribeToResize(()=>{this.resizeLayout();});
-
+    if (this.screenDimensionService.isOriental) {
+      this.screenDimensionService.subscribeToOrientationChange(()=>{this.resizeLayout();});
+    }
+    else {this.screenDimensionService.subscribeToResize(()=>{this.resizeLayout();});}
   }
 
 

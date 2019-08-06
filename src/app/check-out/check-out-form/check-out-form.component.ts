@@ -11,7 +11,7 @@ import { RegisterRequest, PassRequest, TokenRegistry} from './../../../lib/Token
  */
 import { DataPlumberService } from './../../lib/data-plumber.service';
 // For the Token System
-//import { DataSpout } from './../../lib/dataSpout';
+import { DataSpout } from './../../lib/dataSpout';
 import uuidv1 from 'uuid/v1';
 
 @Component({
@@ -25,7 +25,7 @@ import uuidv1 from 'uuid/v1';
  * to the checkout item. Once all the check-out information is acquire, the component then utilizes the PostGrest angular service to
  * store the acquired information within the database. Don't forget the *ngIf="isActive" binding in the app.component.html! Extends DataSpout
  */
-export class CheckOutFormComponent implements OnInit  {
+export class CheckOutFormComponent extends DataSpout implements OnInit  {
 
   /**
    * Apart of the Token System. Bind in parent component to [thisoutput] to some function that's local to the parent component
@@ -60,7 +60,7 @@ export class CheckOutFormComponent implements OnInit  {
   public locationToWhenTheComponentIsGoing: string = ""; // Something for the input element in the template to bind to
   public dateRange: any = undefined; // Not sure what Angular bootstrap returns
   public constructor(private _dataPlumberService: DataPlumberService, private _postGrestService: PostGrestService) {
-    //super(_dataPlumberService, (dataSprayed: string)=> {console.log(`QR component emitted "${dataSprayed}"? Why?`);}, 'checkout');
+    super(_dataPlumberService, (dataSprayed: string)=> {console.log(`QR component emitted "${dataSprayed}"? Why?`);}, 'checkout');
   }
 
   /**
@@ -72,19 +72,18 @@ export class CheckOutFormComponent implements OnInit  {
       tokenBearerUUID: this.tokenBearerUUID,
       tokenBearerName: this.tokenBearerName,
     });
-    //const emitHistory: Array<any> | undefined = this.getSprayHistory();
+    const emitHistory: Array<any> | undefined = this.getSprayHistory();
     /**
      * If there is an emitHistory, or in other words, if QRComponent emitted data BEFORE initialization of this component...
      * which it should be if everything is behaving as intended
      */
-    /**
     if (typeof emitHistory != "undefined") {
       // Get the most recent data emitted by the QR component
       this._solutionOrComponentTarget = emitHistory[emitHistory.length-1];
       console.log(`Most recent emitted data in history:`);
       console.log(this._solutionOrComponentTarget);
     }
-    **/
+    
   }
 
   /**
@@ -92,7 +91,10 @@ export class CheckOutFormComponent implements OnInit  {
   */
  public ngOnChanges(change: SimpleChanges) {
    this.isActive = this.registryCopy[this.tokenBearerUUID]; // Checks to make sure that the token in the registry wasn't passed to it
-   //if (this.isActive) {this._activate();}
+   if (this.isActive) {this._activate();}
  }
 
+ private _activate(): void {
+   console.log("Checkout form activating...");
+ }
 }
