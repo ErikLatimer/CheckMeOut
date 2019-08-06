@@ -43,8 +43,8 @@ export class LoadingComponent extends ngClassBinding implements OnInit {
     // Set part of the style string to display:none
     this.styleDisplayString = "none";
     this._updateLoaderPosition();
-    //this._screenDimensionService.subscribeToResize(function() {this._updateLoaderPosition();}.bind(this));
-    this._screenDimensionService.subscribeToOrientationChange(function() {this._updateLoaderPosition();}.bind(this));
+    if (this._screenDimensionService.isOriental){this._screenDimensionService.subscribeToOrientationChange(function() {this._updateLoaderPosition();}.bind(this));}
+    else{this._screenDimensionService.subscribeToResize(function() {this._updateLoaderPosition();}.bind(this));}
   }
   
 
@@ -59,6 +59,7 @@ export class LoadingComponent extends ngClassBinding implements OnInit {
       (this._screenDimensionService.getOrientation() == this._screenDimensionService.LANDSCAPE_PRIMARY) ||
       (this._screenDimensionService.getOrientation() == this._screenDimensionService.LANDSCAPE_SECONDARY) 
     ) {
+      // Tentative, close enough for now
       this.styleLeftString = "250%";
       this.styleTopString = "-100%"
     }
@@ -66,11 +67,15 @@ export class LoadingComponent extends ngClassBinding implements OnInit {
       (this._screenDimensionService.getOrientation() == this._screenDimensionService.PORTRAIT_PRIMARY) ||
       (this._screenDimensionService.getOrientation() == this._screenDimensionService.PORTRAIT_SECONDARY) 
     ) {
+      // Tentative, close enough for now
       this.styleLeftString = "100%";
       this.styleTopString = "-22.5%";
     }
     else {
+      // Tentative, close enough for now
       console.error(`ERROR. Cannot update the position of the loader component under current unknown orientation "${this._screenDimensionService.getOrientation()}"`);
+      this.styleLeftString = "250%";
+      this.styleTopString = "-50%";
     }
     
   }

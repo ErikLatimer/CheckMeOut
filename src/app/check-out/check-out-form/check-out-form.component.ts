@@ -12,7 +12,7 @@ import { RegisterRequest, PassRequest, TokenRegistry} from './../../../lib/Token
 import { DataPlumberService } from './../../lib/data-plumber.service';
 // For the Token System
 import { DataSpout } from './../../lib/dataSpout';
-import uuidv1 from 'uuid/v1';
+import uuidv4 from 'uuid/v4';
 
 @Component({
   selector: 'app-check-out-form',
@@ -50,7 +50,7 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
   private _solutionOrComponentTarget: Object = {};
 
   // For Token System
-  private readonly tokenBearerUUID: string = uuidv1();
+  private readonly tokenBearerUUID: string = uuidv4();
   // For Token System
   private readonly tokenBearerName: string = "checkoutForm";
 
@@ -83,6 +83,9 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
       console.log(`Most recent emitted data in history:`);
       console.log(this._solutionOrComponentTarget);
     }
+    else {
+      console.log("Emit history is undefined");
+    }
     
   }
 
@@ -90,8 +93,20 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
    * The ngOnChanges here is not used here for much other than the token system.
   */
  public ngOnChanges(change: SimpleChanges) {
-   this.isActive = this.registryCopy[this.tokenBearerUUID]; // Checks to make sure that the token in the registry wasn't passed to it
-   if (this.isActive) {this._activate();}
+   setTimeout(function() {
+     console.log(this.registryCopy);
+     console.log(this.tokenBearerUUID);
+     console.log(this.registryCopy[this.tokenBearerUUID.toString()]);
+     this.isActive = this.registryCopy[this.tokenBearerUUID]; // Checks to make sure that the token in the registry wasn't passed to it
+     if (this.isActive) {
+       console.log("HELLO");
+       this._activate();
+     }
+     else {
+       console.log("NOPE");
+     }
+   }.bind(this), 1);
+   
  }
 
  private _activate(): void {

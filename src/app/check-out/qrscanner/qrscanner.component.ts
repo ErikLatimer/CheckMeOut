@@ -1,4 +1,4 @@
-import uuidv1 from 'uuid/v1';
+import uuidv4 from 'uuid/v4';
 import ratio from 'aspect-ratio';
 import { RegisterRequest, PassRequest, TokenRegistry } from './../../../lib/TokenInterfaces';
 import { Component, OnInit, Output, EventEmitter, Input, SimpleChanges, OnChanges, AfterViewChecked } from '@angular/core';
@@ -18,7 +18,7 @@ export class QRScannerComponent implements OnInit {
 
   @Input() registryCopy: TokenRegistry;
 
-  private readonly tokenBearerUUID: string = uuidv1();
+  private readonly tokenBearerUUID: string = uuidv4();
   private readonly tokenBearerName: string = "qrscanner";
   public isActive: boolean = false;
   public videoFeedSource: MediaStream = undefined;

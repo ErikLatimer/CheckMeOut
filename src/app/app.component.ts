@@ -10,7 +10,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AppComponent implements OnInit{
   constructor(private screenDimensionService: ScreenDimensionService, private postgrestService: PostGrestService) {}
-  private readonly INITIAL_TOKEN_BEARER_NAME: string = "qrscanner";
+  private readonly INITIAL_TOKEN_BEARER_NAME: string = "checkoutForm";
   private registry: TokenRegistry = {};
   private registryYellowBook: YellowBook = {};
 
@@ -31,7 +31,10 @@ export class AppComponent implements OnInit{
     }
     else {this._nameRegistry.push(name);}
     console.log(`TOKEN BEARER UUID:"${uuid}" NAME:"${name}" HAS SUCCESSFULLY REGISTERED`);
-    if(name == this.INITIAL_TOKEN_BEARER_NAME) {this.registry[uuid] = true;}
+    if(name == this.INITIAL_TOKEN_BEARER_NAME) {
+      console.log(`Handing off the initial token to bearer "${name}"`);
+      this.registry[uuid] = true;
+    }
     else {this.registry[uuid] = false;}
     this.updateRegistryCopy();
   }

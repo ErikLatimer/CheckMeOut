@@ -47,3 +47,5 @@
 
 <app-qrscanner id="qrScanner" class="container-fluid" (registerAsTokenBearer)="registerTokenBearer($event)"
   (passToken)="passToken($event)" [registryCopy]="registryCopy"></app-qrscanner>
+<app-check-out-form id="checkOutForm" (registerAsTokenBearer)="registerTokenBearer($event)"
+  (passToken)="passToken($event)" [registryCopy]="registryCopy"></app-check-out-form>

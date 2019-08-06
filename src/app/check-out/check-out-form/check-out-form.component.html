@@ -1,1 +1,28 @@
-<p>check-out-form works!</p>
+<form *ngIf="isActive" id="checkoutInformationForm">
+  <p class = "h4 text-center">{{this._solutionOrComponentTarget.name}}</p>
+  
+  <input type="text" [(ngModel)]="nameOfCheckOutUser" class="form-control mb-4" placeholder="name" name="FullNameOfCheckOutUser">
+  <input type="text" [(ngModel)]="locationToWhichTheComponentGoing" class="form-control mb-4" placeholder="Where to?" name="DestinationOfCheckoutItem">
+
+  <!-- From the material.angular.io library -->
+  <!-- [matDatePicker] comes from the ngModule MatDatePickerModule. -->
+  <!-- The binding to [matDatePicker] is used as a template variable. -->
+  <!-- 
+    <mat-form-field is a component used to wrap several Angular Material components AND APPLY COMMON
+    TEXT FIELD STYLES SUCH AS THE UNDERLINE, FLOATING LABEL, AND HINT MESSAGES.
+  -->
+  <!-- The form-field wraps form controls such as input, text area, select, etc. -->
+  <!-- The wrapper is entirely optionally -->
+  <!-- The [for] im assuming is also a directive of the Matt DatePicker. I think it's a literally FOR something-->
+  <input [matDatepicker]="__matDatePicker" class="form-control mb-4" placeholder= "Dates">
+  <mat-datepicker-toggle [for]="__matDatePicker"></mat-datepicker-toggle>
+  <mat-datepicker #__matDatePicker></mat-datepicker>
+
+  <!-- Now include the submit button -->
+  <!-- Wrap it in a div for spacing? -->
+  <!-- d-flex and stuff comes from regular plain old bootstrap -->
+  <div class = "d-flex flex-row justify-content-center"> <!-- May not be necessary -->
+    <!-- The button and wave effect come from angular-bootstrap-md. Both are directives -->
+    <button mdbBtn type="submit" color="danger" mdbWavesEffect>Submit</button>
+  </div> <!-- May not be necessary -->
+</form>
