@@ -1,8 +1,6 @@
 .spinner-border {
-  position: absolute;
+  position: relative;
   z-index: 3;
-  left: 45%;
-  top:45%;
   width: 8rem;
   height: 8rem;
 }

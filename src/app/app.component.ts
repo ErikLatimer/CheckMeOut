@@ -1,4 +1,5 @@
-import { ScreenDimensionService } from './screen-dimensions.service';
+import { PostGrestService } from './lib/post-grest.service';
+import { ScreenDimensionService } from './lib/screen-dimension.service';
 import { PassRequest, RegisterRequest, TokenRegistry, YellowBook } from './../lib/TokenInterfaces';
 import { Component, OnInit } from '@angular/core';
 
@@ -8,19 +9,27 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit{
-  constructor(private screenDimensionService: ScreenDimensionService) {}
+  constructor(private screenDimensionService: ScreenDimensionService, private postgrestService: PostGrestService) {}
   private readonly INITIAL_TOKEN_BEARER_NAME: string = "qrscanner";
   private registry: TokenRegistry = {};
   private registryYellowBook: YellowBook = {};
 
   public registryCopy: TokenRegistry = {};
 
+  private _nameRegistry: string[] = [];
+
   registerTokenBearer(request: RegisterRequest) {
+    //! TO DO: 
+    // Have a way to check if a token bearer has already registered to prevent errors
     console.log(`UUID:${request.tokenBearerUUID}`);
     console.log(`Name:${request.tokenBearerName}`);
     let uuid = request.tokenBearerUUID;
     let name = request.tokenBearerName;
-    
+    if (this._nameRegistry.includes(name)) { 
+      console.error(`Token bearer with name "${name}" has already registered. Refusing to re-register token bearer...`);
+      return;
+    }
+    else {this._nameRegistry.push(name);}
     console.log(`TOKEN BEARER UUID:"${uuid}" NAME:"${name}" HAS SUCCESSFULLY REGISTERED`);
     if(name == this.INITIAL_TOKEN_BEARER_NAME) {this.registry[uuid] = true;}
     else {this.registry[uuid] = false;}
@@ -49,6 +58,7 @@ export class AppComponent implements OnInit{
     if (typeof window.orientation == "undefined" ) {
     }
     else { document.getElementById("root").style.overflow = "scroll"; }
+    this.postgrestService.init();
   }
   title = 'CheckMeOut';
 }

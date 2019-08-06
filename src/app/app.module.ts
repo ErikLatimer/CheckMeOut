@@ -6,10 +6,9 @@ import { MainScreenModule } from './main-screen/main-screen.module';
 import { MDBBootstrapModule } from 'angular-bootstrap-md';
 import { CheckOutModule } from './check-out/check-out.module';
 
-
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
   ],
   imports: [
     BrowserModule,

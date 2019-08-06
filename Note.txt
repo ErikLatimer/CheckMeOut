@@ -1,0 +1,1 @@
+Note that the lib within rhe source folder within app is a lib MODULE, not a lib folder.

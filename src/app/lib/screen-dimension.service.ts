@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import ratio from 'aspect-ratio';
 import { EventEmitter } from 'events';
+import { elementEventFullName } from '@angular/compiler/src/view_compiler/view_compiler';
 
 interface ScreenDimensionsOriental {
   // 0 = WIDTH; 1 = HEIGHT
   [orientation: number]: number[];
 }
+
 
 interface ScreenDimensions {
   width: number,
@@ -49,6 +51,13 @@ export class ScreenDimensionService {
   private deviceIsOriental: boolean = undefined;
   private orientationChangeProcessed: EventEmitter = new EventEmitter();
   private resizeProcessed: EventEmitter = new EventEmitter();
+
+  public readonly PORTRAIT_PRIMARY: number | string = Orientation.Portrait_Primary;
+  public readonly PORTRAIT_SECONDARY: number | string = Orientation.Portrait_Secondary;
+  public readonly LANDSCAPE_PRIMARY: number | string = Orientation.Landscape_Primary;
+  public readonly LANDSCAPE_SECONDARY: number | string = Orientation.Landscape_Secondary;
+
+
   init() {
     // Let's first determine if the current browser even supports orientation
     // Taking a portrait orientation as reference
@@ -546,6 +555,6 @@ export class ScreenDimensionService {
 
   public isOriental() {return this.deviceIsOriental;}
 
-
+  public getOrientation() {return this.currentOrientation;}
 
 }

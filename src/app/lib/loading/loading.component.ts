@@ -1,5 +1,7 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
+
+import { Component, OnInit, Input, OnChanges, SimpleChanges, ElementRef } from '@angular/core';
 import {ngClassBinding} from '../../../lib/ngClassBinding';
+import { ScreenDimensionService } from './../screen-dimension.service';
 
 @Component({
   selector: 'app-loading',
@@ -27,8 +29,11 @@ export class LoadingComponent extends ngClassBinding implements OnInit {
   // public ngClassBinding: ngClasses = {}
   private readonly MDB_ANIMATION_SLIDEINUP: string = "slideInUp";
   private readonly MDB_ANIMATION_SLIDEOUTDOWN: string = "slideOutDown";
-  public styleString: string = "";
-  constructor() {super();}
+  public styleDisplayString: string = "";
+  public styleTopString: string = "";
+  public styleLeftString: string = "";
+
+  constructor(private _hostElement: ElementRef, private _screenDimensionService: ScreenDimensionService) {super();}
 
   /**
    * On initialization of a new loader component, set the style binding to display:none
@@ -36,7 +41,38 @@ export class LoadingComponent extends ngClassBinding implements OnInit {
    */
   public ngOnInit() {
     // Set part of the style string to display:none
-    this.styleString = "none";
+    this.styleDisplayString = "none";
+    this._updateLoaderPosition();
+    //this._screenDimensionService.subscribeToResize(function() {this._updateLoaderPosition();}.bind(this));
+    this._screenDimensionService.subscribeToOrientationChange(function() {this._updateLoaderPosition();}.bind(this));
+  }
+  
+
+  /**
+   * @description This is needed because the loader component's styles cannot use transform translate because it is included
+   * and tied up within it's animation styles and settings. SO we will have to manually set the position through direct DOM
+   * access. Please refrain from using direct DOM access as this is not good practice in Angular, and should be avoided. Angular
+   * provides ways to do this.
+   */
+  private _updateLoaderPosition() {
+    if (
+      (this._screenDimensionService.getOrientation() == this._screenDimensionService.LANDSCAPE_PRIMARY) ||
+      (this._screenDimensionService.getOrientation() == this._screenDimensionService.LANDSCAPE_SECONDARY) 
+    ) {
+      this.styleLeftString = "250%";
+      this.styleTopString = "-100%"
+    }
+    else if (
+      (this._screenDimensionService.getOrientation() == this._screenDimensionService.PORTRAIT_PRIMARY) ||
+      (this._screenDimensionService.getOrientation() == this._screenDimensionService.PORTRAIT_SECONDARY) 
+    ) {
+      this.styleLeftString = "100%";
+      this.styleTopString = "-22.5%";
+    }
+    else {
+      console.error(`ERROR. Cannot update the position of the loader component under current unknown orientation "${this._screenDimensionService.getOrientation()}"`);
+    }
+    
   }
 
   public ngOnChanges(changes: SimpleChanges) {
@@ -64,7 +100,7 @@ export class LoadingComponent extends ngClassBinding implements OnInit {
     // Add the SlideInUp class.
     //this.setClass(this.MDB_ANIMATION_SLIDEINUP, true);
     // Unset display:none so the client can see the loading component
-    this.styleString = "block";
+    this.styleDisplayString = "block";
   }
 
   /**
@@ -77,14 +113,14 @@ export class LoadingComponent extends ngClassBinding implements OnInit {
     if (this.classIsActive(this.MDB_ANIMATION_SLIDEINUP)){this.removeClass(this.MDB_ANIMATION_SLIDEINUP);}
     // Now add the slideOutDown class
     // this.setClass(this.MDB_ANIMATION_SLIDEOUTDOWN, true);
-    this.styleString = "none";
+    this.styleDisplayString = "none";
   }
 
   public onAnimationEnd(event: Event): void {
     /**
     console.log("Loader Animation ended.");
     if (this.classIsActive(this.MDB_ANIMATION_SLIDEOUTDOWN)) {
-      this.styleString = "none";
+      this.styleDisplayString = "none";
       this.removeClass(this.MDB_ANIMATION_SLIDEOUTDOWN);
     }
     **/
