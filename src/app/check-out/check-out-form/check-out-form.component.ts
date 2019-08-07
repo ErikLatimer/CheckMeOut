@@ -1,7 +1,7 @@
 // Everything pretty much after component is used to make the token system function properly and as intended.
 import { Component, OnInit, Output, EventEmitter, Input, SimpleChanges, OnChanges } from '@angular/core';
 // Used for FormControl class
-import { FormControl } from '@angular/forms';
+import { FormControl, Validators, FormGroup } from '@angular/forms';
 // Utilizes PostGreSQL for storage of data captured in this form component (information like name of the person checking out, their destination, etc.)
 import { PostGrestService } from './../../lib/post-grest.service';
 /**
@@ -69,10 +69,9 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
    *
    * To fully utilize MatDatePicker input, utilize angular's bindings to bind to the inputs and outputs specified in the api.
    */
-  public nameControl: FormControl = new FormControl('');
-  public destinationControl: FormControl = new FormControl('');
-  public startDateControl: FormControl = new FormControl('');
-  public endDateControl: FormControl = new FormControl('');
+
+  public checkOutFormGroup: FormGroup;
+  
   public minimumDate_Start: Date;
   public maximumDate_Start: Date;
   public minimumDate_End: Date;
@@ -125,7 +124,15 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
      */
     console.log("​CheckOutFormComponent -> CheckOutSettings.getMaxTimeInAdvanceForReservation(currentDate)", CheckOutSettings.getMaxTimeInAdvanceForCheckOut(currentDate));
     this.maximumDate_Start = CheckOutSettings.getMaxTimeInAdvanceForCheckOut(currentDate);
-    
+    /**
+     * Initialize the form group here
+     */
+    this.checkOutFormGroup = new FormGroup( {
+      'nameControl': new FormControl(null, Validators.required),
+      'destinationControl': new FormControl(null, Validators.required),
+      'startDateControl': new FormControl(null, Validators.required),
+      'endDateControl': new FormControl(null, Validators.required)
+    });
   }
 
   /**
@@ -169,4 +176,9 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
  private _activate(): void {
    console.log("Checkout form activating...");
  }
+
+ public formSubmitted(event: Event) {
+   console.log(this.checkOutFormGroup.value);
+ }
+
 }

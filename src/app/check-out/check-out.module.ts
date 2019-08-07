@@ -1,4 +1,4 @@
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -31,6 +31,4 @@ import { CheckOutFormComponent } from './check-out-form/check-out-form.component
     CheckOutFormComponent
   ]
 })
-export class CheckOutModule {
-  // schemas: [ NO_ERRORS_SCHEMA ],
- }
+export class CheckOutModule { }

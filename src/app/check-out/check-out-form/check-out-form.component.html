@@ -1,4 +1,5 @@
-<form *ngIf="isActive" class="m-5" id="checkoutInformationForm">
+<form *ngIf="isActive" class="m-5" id="checkoutInformationForm" [formGroup]="checkOutFormGroup" (ngSubmit)="formSubmitted($event)" #checkOutForm="ngForm">
+  <!-- Bound to the directive ngForm. I guess just be instantiating the directive, it binds to the form instance automatically -->
   <p class = "h4 text-center">{{this._solutionOrComponentTarget.name}}</p>
   
   <mat-form-field class="mb-4" appearance="fill">
@@ -6,7 +7,7 @@
       <input type="text" [(ngModel)]="nameOfCheckOutUser" class="form-control mb-5" placeholder="Name" name="FullNameOfCheckOutUser">
     -->
     <mat-label>Name</mat-label>
-    <input type="text" matInput placeholder="Name" [formControl]="nameControl">
+    <input type="text" class="form-control" formControlName="nameControl" matInput placeholder="Name">
     <mat-icon matSuffix>face</mat-icon>
     <mat-hint>First and Last Name</mat-hint>
   </mat-form-field>
@@ -16,7 +17,7 @@
       <input type="text" [(ngModel)]="locationToWhichTheComponentGoing" class="form-control mb-5" placeholder="Where to?" name="DestinationOfCheckoutItem">
     -->
     <mat-label>Destination</mat-label>
-    <input type="text" matInput placeholder="Where to?" [formControl]="destinationControl">
+    <input type="text" class="form-control" formControlName="destinationControl" matInput placeholder="Where to?">
     <mat-icon matSuffix>local_airport</mat-icon>
     <mat-hint>If you have multiple destinations, just put the first</mat-hint>
   </mat-form-field>
@@ -34,7 +35,7 @@
   <!-- The [for] im assuming is also a directive of the Matt DatePicker. I think it's a literally FOR something-->
   <mat-form-field class="mb-5">
     <mat-label>Date Start</mat-label>
-    <input matInput [matDatepicker]="__matDatePickerFrom" placeholder= "Date From" [formControl]="startDateControl" (dateChange)="dateChanged_Start($event)" [max]="maximumDate_Start" [min]="minimumDate_Start">
+    <input class="form-control" formControlName="startDateControl" matInput [matDatepicker]="__matDatePickerFrom" placeholder="Date From" (dateChange)="dateChanged_Start($event)" [max]="maximumDate_Start" [min]="minimumDate_Start">
     <mat-datepicker-toggle matSuffix [for]="__matDatePickerFrom"></mat-datepicker-toggle>
     <mat-datepicker #__matDatePickerFrom></mat-datepicker>
     <!--<mat-hint>You can only check out a solution demo for up to a maximum of {{MDIACO}} days in advance</mat-hint>-->
@@ -42,7 +43,7 @@
 
   <mat-form-field>
     <mat-label>Date End</mat-label>
-    <input matInput [matDatepicker]="__matDatePickerTo" placeholder= "Date To" [formControl]="endDateControl" [max]="maximumDate_End" [min]="minimumDate_End">
+    <input class="form-control" formControlName="endDateControl" matInput [matDatepicker]="__matDatePickerTo" placeholder="Date To" [max]="maximumDate_End" [min]="minimumDate_End">
     <mat-datepicker-toggle matSuffix [for]="__matDatePickerTo"></mat-datepicker-toggle>
     <mat-datepicker #__matDatePickerTo></mat-datepicker>
     <!--<mat-hint>You can only check out a solution for up to a maximum of {{MDCO}} days</mat-hint>-->
@@ -52,6 +53,10 @@
   <!-- d-flex and stuff comes from regular plain old bootstrap -->
   <div class ="d-flex flex-row justify-content-center mt-5"> <!-- May not be necessary -->
     <!-- The button and wave effect come from angular-bootstrap-md. Both are directives -->
-    <button mdbBtn  type="submit" color="danger" mdbWavesEffect>Submit</button>
+    <!-- 
+      We had to angular attr bind the disabled state to the mdb button because this library
+      didn't have the disabled as an ELEMENT PROPERTY. But it did have it as an attr binding.
+     -->
+    <button mdbBtn  type="submit" color="danger" mdbWavesEffect [disabled]="!checkOutForm.form.valid">Submit</button>
   </div> <!-- May not be necessary -->
 </form>
