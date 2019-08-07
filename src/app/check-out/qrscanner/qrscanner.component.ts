@@ -194,13 +194,7 @@ export class QRScannerComponent implements OnInit {
           }.bind(this),
           300
         );
-        setTimeout(
-          function() {
-            //window.navigator.vibrate(1000);
-
-          }.bind(this),
-          200
-        );
+        // Apparently theres a problem with angular and vibrate 
         // This is in place to prevent a scenario where the processing for the QR code is done
         // BEFORE the color timeout is complete.
         //! This property is Angular bound to the video element

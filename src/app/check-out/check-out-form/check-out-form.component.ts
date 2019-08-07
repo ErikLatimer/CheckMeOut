@@ -1,5 +1,7 @@
 // Everything pretty much after component is used to make the token system function properly and as intended.
 import { Component, OnInit, Output, EventEmitter, Input, SimpleChanges, OnChanges } from '@angular/core';
+// Used for FormControl class
+import { FormControl } from '@angular/forms';
 // Utilizes PostGreSQL for storage of data captured in this form component (information like name of the person checking out, their destination, etc.)
 import { PostGrestService } from './../../lib/post-grest.service';
 /**
@@ -13,6 +15,9 @@ import { DataPlumberService } from './../../lib/data-plumber.service';
 // For the Token System
 import { DataSpout } from './../../lib/dataSpout';
 import uuidv4 from 'uuid/v4';
+
+import { CheckOutSettings } from './../checkOutSettings';
+import { MatDatepickerInputEvent } from '@angular/material';
 
 @Component({
   selector: 'app-check-out-form',
@@ -56,16 +61,35 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
 
   public isActive: boolean = false;
 
-  public noneOfCheckOutUser: string = ""; // Something for the input element in the template to bind to
-  public locationToWhenTheComponentIsGoing: string = ""; // Something for the input element in the template to bind to
-  public dateRange: any = undefined; // Not sure what Angular bootstrap returns
+  /**
+   * MatDatepickerInput is apart of the MatDatePicker api, and is "Directive used to connect an input to a MatDatePicker." quite literally.
+   * And by input, they are referring to an <input> element. Even though the api says the selector is
+   * input[matDatePicker], it's actually used like [matDatePicker]="<template reference variable of mat-datepicker element>."
+   * I guess input here is just used to indicate the html element
+   *
+   * To fully utilize MatDatePicker input, utilize angular's bindings to bind to the inputs and outputs specified in the api.
+   */
+  public nameControl: FormControl = new FormControl('');
+  public destinationControl: FormControl = new FormControl('');
+  public startDateControl: FormControl = new FormControl('');
+  public endDateControl: FormControl = new FormControl('');
+  public minimumDate_Start: Date;
+  public maximumDate_Start: Date;
+  public minimumDate_End: Date;
+  public maximumDate_End: Date;
+
+  public readonly MDIACO: number = CheckOutSettings.getMaxDaysInAdvanceItemCanBeCheckedOut(); // Max Days in Advance Item can be Checked Out
+  public readonly MDCO: number = CheckOutSettings.getMaxDaysItemCanBeCheckedOut(); // Max Days Checked Out
+  public readonly MDR: number = CheckOutSettings.getMaxDaysReserved(); // Max Days Reserved
+  
   public constructor(private _dataPlumberService: DataPlumberService, private _postGrestService: PostGrestService) {
     super(_dataPlumberService, (dataSprayed: string)=> {console.log(`QR component emitted "${dataSprayed}"? Why?`);}, 'checkout');
   }
 
   /**
    * The ngOnInit here is not used for much other then the token system. It's also used to retrieve passed emissions from the qrComponent
-   * to establish the targetDocument targeted for checkout during this session
+   * to establish the targetDocument targeted for checkout during this session. Also used to set the minimum date for the calendar component
+   * to the time onf instantiation.
    */
   public ngOnInit(): void {
     this.registerAsTokenBearer.emit ({
@@ -86,7 +110,40 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
     else {
       console.log("Emit history is undefined");
     }
+
+    /**
+     * Sets the minimum date of the start date calendar to around the time of instantiation of this form component using the Date object, native to Javascript.
+     */
+    const currentDate: Date = new Date();
+    console.log("​CheckOutFormComponent -> currentDate", currentDate);
+    console.log(`currentDate in milliseconds ${currentDate.getTime()}`);
+    this.minimumDate_Start = currentDate;
+
+    /**
+     * Sets the maximum date of the start date calendar to the maximum time in advance for a reservation from around the time of instantiation of this form
+     * component, specified in CheckOutSettings. Uses CheckOutSettings method to arrive at a date.
+     */
+    console.log("​CheckOutFormComponent -> CheckOutSettings.getMaxTimeInAdvanceForReservation(currentDate)", CheckOutSettings.getMaxTimeInAdvanceForCheckOut(currentDate));
+    this.maximumDate_Start = CheckOutSettings.getMaxTimeInAdvanceForCheckOut(currentDate);
     
+  }
+
+  /**
+   * @public
+   * @description A function bound to the @ Output dateChange: EventEmitter<MatDatepickerInputEvent<D>> of the input element that has the matDatePickerInput
+   * (<[matDatePickerInput]="<sometemplatevariable">) directives. Gets the target MatDatePickerInput from event, retrieves it's value,
+   * and set's minimumDate_End to this date. Also, changes the maximumDate_End to the maximum allowed checkout time specified by CheckOutSettings. Also uses
+   * CheckOutSettings.
+   * @param { MatDatePickerInputEvent<Date> } event The event fired from directive.
+   * @returns { void }
+   */
+  public dateChanged_Start( event: MatDatepickerInputEvent<Date> ): void {
+    console.log("event.target.value:");
+    console.log(event.target.value);
+    this.minimumDate_End = event.target.value; // Sets the minimum date of the end date calendar
+    this.maximumDate_End = CheckOutSettings.getMaxTimeItemCanBeCheckedOut(event.target.value);
+		console.log("​CheckOutFormComponent -> CheckOutSettings.getMaxTimeItemCanBeCheckedOut(event.target.value)", CheckOutSettings.getMaxTimeItemCanBeCheckedOut(event.target.value));
+    // Sets the maximum date of the end date calendar
   }
 
   /**
