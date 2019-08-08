@@ -38,16 +38,18 @@ export class DataPlumberService {
      */
     if(typeof this._pipeline[tag] != "undefined") {
       // If a hose has already been connected
+      console.log(`Hose-like or Spout-like infrastructure has already been connected to pipeline tagged "${tag}"`);
       (this._pipeline[tag]).push(callback);
-      console.log(`Spout "${tag}" connected successfully.`);
+      console.log(`Spout tagged "${tag}" connected successfully.`);
     }
     else {
       // If not
-      // Else if the hose-like infrastructure doesn't have an established pipeline...
+      // Else if the hose-like or any spout-like infrastructure doesn't have an established pipeline...
       // Establish a pipeline with the hose
+      console.log(`No Hose-like or Spout-like infrastructure been connected to pipeline tagged "${tag}". Instantiating new pipeline...`);
       this._pipeline[tag] = new Array<(dataSprayed: any)=> void> ();
       (this._pipeline[tag]).push(callback);
-      console.log(`Spout "${tag}" connected successfully.`);
+      console.log(`Spout tagged "${tag}" connected successfully.`);
     }
   }
 
@@ -65,9 +67,18 @@ export class DataPlumberService {
      * Basically, if this tag belonging to this hose-like infrastructure has an established pipeline already...
      */
     if(typeof this._pipeline[tag] != "undefined") {
-      // If a spout has been connected already...
+      // If a spout has been connected already or possibly another hose has already been connected....
+      console.log(`Spout-like infrastructure detected for pipeline tagged "${tag}".`);
+      console.log(this._pipeline[tag]);
+      if (typeof this._dataSprayHistory[tag] == "undefined") {
+        // Then no hose-like infrastructure has been connected and instantiate a dataSprayArray
+        console.log(`No hose-like infrastructure detected for pipeline tagged "${tag}". Instantiating spray history array...`);
+        this._dataSprayHistory[tag] = new Array<any>();
+      }
       // This is a new instance of an eventEmitter
       hose.on(this.SPRAY, function(data:any) {
+        console.log(`Sprayed data: ${data}`);
+        console.log(`Current pipeline tag: ${tag}`);
         this._dataSprayHistory[tag].push(data); // Keeps the spray history in case spouts join late
         this._pipeline[tag].forEach( (callbackFunction: (dataSprayed: any)=> void)=> {
           try {callbackFunction(data);}
@@ -82,18 +93,25 @@ export class DataPlumberService {
           console.log(data);
         });
       }.bind(this));
-      // Log a warning and return void
-      console.warn(`The hose like infrastructure tagged "${tag}" already has an established pipeline below:`);
-      console.warn(this._pipeline[tag]);
-      return;
+      console.log(`Hose tagged "${tag}" with event emitter below successfully installed!`);
+      console.log(hose);
     }
     else {
       // If no spout has been connected yet...
-      // Else if the hose-like infrastructure doesn't have an established pipeline...
+      // Else if the hose-like infrastructure or nay infrastructure doesn't have an established pipeline...
       // Establish a pipeline with the hose
+      console.log(`No spout-like or hose-like infrastructure detected for pipeline tagged "${tag}". Instantiating new pipeline...`);
       this._pipeline[tag] = new Array<(dataSprayed: any)=> void> ();
+      if (typeof this._dataSprayHistory[tag] == "undefined") {
+        // Then no hose-like infrastructure has been connected and instantiate a dataSprayArray
+        console.log(`No hose-like infrastructure detected for pipeline tagged "${tag}". Instantiating spray history array...`);
+        this._dataSprayHistory[tag] = new Array<any>();
+      }
       // This is a new instance of an eventEmitter
       hose.on(this.SPRAY, function(data:any) {
+        console.log("Sprayed data:");
+        console.log(data);
+        console.log(`Current pipeline tag: ${tag}`);
         this._dataSprayHistory[tag].push(data); // Keeps the spray history in case spouts join late
         this._pipeline[tag].forEach( (callbackFunction: (dataSprayed: any)=> void)=> {
           try {callbackFunction(data);}
@@ -108,6 +126,8 @@ export class DataPlumberService {
           console.log(data);
         });
       }.bind(this));
+      console.log(`Hose tagged "${tag}" with event emitter below successfully installed!`);
+      console.log(hose);
     }
   }
 
@@ -137,9 +157,14 @@ export class DataPlumberService {
    // First, check if the tag is associated with a pipeline
    if (typeof this._pipeline[tag] == "undefined") {
     // If this tag is unassociated with a pipeline...
+    console.error(`ERROR. CANNOT RETRIEVE SPRAY HISTORY OF A NON-EXISTENT PIPELINE TAGGED "${tag}"`);
     return undefined;
    }
-   else {return this._dataSprayHistory[tag];}
+   else {
+    console.log(`Retrieving data spray history for pipeline tagged "${tag}":`);
+    console.log(this._dataSprayHistory[tag]);
+    return this._dataSprayHistory[tag];
+  }
    // If the tag is associated with a pipeline
  }
 

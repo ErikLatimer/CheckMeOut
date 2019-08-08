@@ -1,5 +1,5 @@
 // Everything pretty much after component is used to make the token system function properly and as intended.
-import { Component, OnInit, Output, EventEmitter, Input, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input, SimpleChanges, OnChanges, DoCheck } from '@angular/core';
 // Used for FormControl class
 import { FormControl, Validators, FormGroup } from '@angular/forms';
 // Utilizes PostGreSQL for storage of data captured in this form component (information like name of the person checking out, their destination, etc.)
@@ -82,7 +82,14 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
   public readonly MDR: number = CheckOutSettings.getMaxDaysReserved(); // Max Days Reserved
   
   public constructor(private _dataPlumberService: DataPlumberService, private _postGrestService: PostGrestService) {
-    super(_dataPlumberService, (dataSprayed: string)=> {console.log(`QR component emitted "${dataSprayed}"? Why?`);}, 'checkout');
+    super(
+      _dataPlumberService,
+      function(dataSprayed: any) {
+        console.log("QR component emitted:");
+        console.log(dataSprayed);
+      },
+      'checkout'
+    );
   }
 
   /**
@@ -95,21 +102,6 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
       tokenBearerUUID: this.tokenBearerUUID,
       tokenBearerName: this.tokenBearerName,
     });
-    const emitHistory: Array<any> | undefined = this.getSprayHistory();
-    /**
-     * If there is an emitHistory, or in other words, if QRComponent emitted data BEFORE initialization of this component...
-     * which it should be if everything is behaving as intended
-     */
-    if (typeof emitHistory != "undefined") {
-      // Get the most recent data emitted by the QR component
-      this._solutionOrComponentTarget = emitHistory[emitHistory.length-1];
-      console.log(`Most recent emitted data in history:`);
-      console.log(this._solutionOrComponentTarget);
-    }
-    else {
-      console.log("Emit history is undefined");
-    }
-
     /**
      * Sets the minimum date of the start date calendar to around the time of instantiation of this form component using the Date object, native to Javascript.
      */
@@ -157,6 +149,7 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
    * The ngOnChanges here is not used here for much other than the token system.
   */
  public ngOnChanges(change: SimpleChanges) {
+   /**
    setTimeout(function() {
      console.log(this.registryCopy);
      console.log(this.tokenBearerUUID);
@@ -170,15 +163,51 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
        console.log("NOPE");
      }
    }.bind(this), 1);
-   
+   **/
+ }
+
+ public ngDoCheck() {
+   if (this.isActive != this.registryCopy[this.tokenBearerUUID]) {
+    setTimeout(function() {
+      console.log(this.registryCopy);
+      console.log(this.tokenBearerUUID);
+      console.log(this.registryCopy[this.tokenBearerUUID.toString()]);
+      this.isActive = this.registryCopy[this.tokenBearerUUID]; // Checks to make sure that the token in the registry wasn't passed to it
+      if (this.isActive) {
+        console.log("HELLO");
+        this._activate();
+      }
+      else {
+        console.log("NOPE");
+      }
+    }.bind(this), 1);
+   }
  }
 
  private _activate(): void {
    console.log("Checkout form activating...");
+   const emitHistory: Array<any> | undefined = this.getSprayHistory();
+    /**
+     * If there is an emitHistory, or in other words, if QRComponent emitted data BEFORE initialization of this component...
+     * which it should be if everything is behaving as intended
+     */
+    if (typeof emitHistory != "undefined") {
+      // Get the most recent data emitted by the QR component
+      this._solutionOrComponentTarget = emitHistory[emitHistory.length-1];
+      console.log(`Most recent emitted data in history:`);
+      console.log(this._solutionOrComponentTarget);
+    }
+    else {
+      console.log("Emit history is undefined");
+    }
  }
 
  public formSubmitted(event: Event) {
    console.log(this.checkOutFormGroup.value);
+   this.passToken.emit({
+     targetTokenBearerName: "qrscanner",
+     tokenBearerUUID: this.tokenBearerUUID 
+   });
  }
 
 }

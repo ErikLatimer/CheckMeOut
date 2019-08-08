@@ -29,7 +29,7 @@ export abstract class DataHose {
    * @parameter {string} eventName The event to emit. Subscribers subscribed to <eventName>
    * @returns {void}
    */
-    private _sprayData(data: any): void {this._dataEmitter.emit(this._hoseDataPlumberService.SPRAY, data);}
+    protected _sprayData(data: any): void {this._dataEmitter.emit(this._hoseDataPlumberService.SPRAY, data);}
 
 
 }

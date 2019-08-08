@@ -13,6 +13,8 @@ export abstract class DataSpout {
    * with the private _tag property or member of this class.
    */
   public constructor( dataPlumberServiceGlobalReference: DataPlumberService, callbackFunction: (dataSprayed: any)=>void, tag: string ) {
+    // Sets the tag of this Spout-like infrastructure to the tag provided in the constructor
+    this._tag = tag;
     // Set this dataPlumberService to the global service instance
     this._spoutDataPlumberService = dataPlumberServiceGlobalReference;
     // Set this tag.id to the tag passed in as a paramter

@@ -73,7 +73,7 @@ export class LoadingComponent extends ngClassBinding implements OnInit {
     }
     else {
       // Tentative, close enough for now
-      console.error(`ERROR. Cannot update the position of the loader component under current unknown orientation "${this._screenDimensionService.getOrientation()}"`);
+      console.warn(`ERROR. Cannot update the position of the loader component under current unknown orientation "${this._screenDimensionService.getOrientation()}"`);
       this.styleLeftString = "250%";
       this.styleTopString = "-50%";
     }

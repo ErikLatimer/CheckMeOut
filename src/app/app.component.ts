@@ -1,7 +1,7 @@
 import { PostGrestService } from './lib/post-grest.service';
 import { ScreenDimensionService } from './lib/screen-dimension.service';
 import { PassRequest, RegisterRequest, TokenRegistry, YellowBook } from './../lib/TokenInterfaces';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-root',
@@ -10,7 +10,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AppComponent implements OnInit{
   constructor(private screenDimensionService: ScreenDimensionService, private postgrestService: PostGrestService) {}
-  private readonly INITIAL_TOKEN_BEARER_NAME: string = "checkoutForm";
+  private readonly INITIAL_TOKEN_BEARER_NAME: string = "qrscanner";
   private registry: TokenRegistry = {};
   private registryYellowBook: YellowBook = {};
 
@@ -36,12 +36,20 @@ export class AppComponent implements OnInit{
       this.registry[uuid] = true;
     }
     else {this.registry[uuid] = false;}
+    // Associate the tokenBearer name with it's uuid.
+    this.registryYellowBook[name] = uuid;
     this.updateRegistryCopy();
   }
-  updateRegistryCopy() {this.registryCopy=this.registry;}
+  updateRegistryCopy() {
+    console.log("Updating registry copy...");
+    this.registryCopy=this.registry;
+    //this.changDetector.detectChanges();
+  }
   passToken(request: PassRequest) {
     let uuid = request.tokenBearerUUID;
+    console.log(`Token Bearer passing the token's UUID: "${uuid}"`);
     let targetName = request.targetTokenBearerName;
+    console.log(`Target Name: "${targetName}"`);
     if (!(this.registry[uuid]) || (typeof this.registry[uuid] == "undefined")) {
       console.error("ERROR. CANNOT PERFORM A TOKEN PASS IF PROCLAIMED CURRENT TOKEN HOLDER DOES NOT HAVE TOKEN");
       return;
@@ -50,6 +58,7 @@ export class AppComponent implements OnInit{
       console.error("ERROR. CANNOT PERFORM A TOKEN PASS IF NAME IS NOT A TOKEN BEARER");
     }
     this.registry[uuid] = false;
+    console.log(this.registryYellowBook[targetName]);
     this.registry[this.registryYellowBook[targetName]] = true;
     this.updateRegistryCopy();
   }

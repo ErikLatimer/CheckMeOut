@@ -1,17 +1,19 @@
 import uuidv4 from 'uuid/v4';
 import ratio from 'aspect-ratio';
 import { RegisterRequest, PassRequest, TokenRegistry } from './../../../lib/TokenInterfaces';
-import { Component, OnInit, Output, EventEmitter, Input, SimpleChanges, OnChanges, AfterViewChecked } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input, SimpleChanges, OnChanges, AfterViewChecked, DoCheck } from '@angular/core';
 import { ScreenDimensionService } from '../../lib/screen-dimension.service';
 import { PostGrestService } from './../../lib/post-grest.service';
 import jsQR, { QRCode } from 'jsqr';
+import { DataHose } from './../../lib/dataHose';
+import { DataPlumberService } from 'src/app/lib/data-plumber.service';
 
 @Component({
   selector: 'app-qrscanner',
   templateUrl: './qrscanner.component.html',
   styleUrls: ['./qrscanner.component.scss']
 })
-export class QRScannerComponent implements OnInit {
+export class QRScannerComponent extends DataHose implements OnInit {
 
   @Output() registerAsTokenBearer = new EventEmitter<RegisterRequest>();
   @Output() passToken = new EventEmitter<PassRequest>();
@@ -48,7 +50,9 @@ export class QRScannerComponent implements OnInit {
 
 // Inject the ScreenDimensionService
 
-  constructor(private postgrestService: PostGrestService, private screenDimensionService: ScreenDimensionService) { }
+  constructor(private postgrestService: PostGrestService, private screenDimensionService: ScreenDimensionService, private _dataPlumberService: DataPlumberService) {
+    super(_dataPlumberService, 'checkout');
+   }
 
   ngOnInit() {
     this.registerAsTokenBearer.emit({
@@ -56,9 +60,25 @@ export class QRScannerComponent implements OnInit {
       tokenBearerName: this.tokenBearerName
     });
   }
-  ngOnChanges(changes: SimpleChanges) {;
+  ngOnChanges(changes: SimpleChanges) {
+    /**
     this.isActive = this.registryCopy[this.tokenBearerUUID];
-    if (this.isActive) {this.activate();}
+    if (this.isActive) {
+      console.log("QRScanner component is now active");
+      this.activate();
+    }
+    else {console.log("QRScanner component is now inactive");}
+    **/
+  }
+  ngDoCheck() {
+    if ( this.isActive != this.registryCopy[this.tokenBearerUUID] ) {
+    this.isActive = this.registryCopy[this.tokenBearerUUID];
+    if (this.isActive) {
+      console.log("QRScanner component is now active");
+      this.activate();
+    }
+    else {console.log("QRScanner component is now inactive");}
+  }
   }
 
   ngAfterViewChecked() {
@@ -84,7 +104,7 @@ export class QRScannerComponent implements OnInit {
     // If the canvas context isn't ready yet...
     if ( canvas === null ) {
       // then just return and exit on this instance of ngAfterViewChecked()
-      console.warn("Canvas context is not ready yet. Returning...");
+      //console.warn("Canvas context is not ready yet. Returning...");
       return false;
     } 
     else {
@@ -245,8 +265,18 @@ export class QRScannerComponent implements OnInit {
       console.log("Results:");
       console.log(resultingDocument);
       console.log("Finished");
-      this.isProcessing = false;
-      this.destroyLoader();
+      setTimeout(function() {
+        this.isProcessing = false;
+        this.destroyLoader();
+        /**
+          * Spray the data through the pipeline system and then pass control to the form through the token system
+        */
+        this._sprayData(resultingDocument);
+        this.passToken.emit({
+          tokenBearerUUID: this.tokenBearerUUID,
+          targetTokenBearerName: "checkoutForm"
+        });
+      }.bind(this), 1000);
       return resultingDocument;
     }
     else {
@@ -268,10 +298,14 @@ export class QRScannerComponent implements OnInit {
     this.navbarHeight = document.getElementById(this.NAVBAR_ID).getBoundingClientRect().height;
     this.enableStream();
     this.setCanvasDimensionsAndStyle();
-    if (this.screenDimensionService.isOriental) {
+    if (this.screenDimensionService.isOriental()) {
+      console.log("QRComponent subscribed to orientation");
       this.screenDimensionService.subscribeToOrientationChange(()=>{this.resizeLayout();});
     }
-    else {this.screenDimensionService.subscribeToResize(()=>{this.resizeLayout();});}
+    else {
+      console.log("QRComponent subscribed to resize");
+      this.screenDimensionService.subscribeToResize(()=>{this.resizeLayout();});
+    }
   }
 
 

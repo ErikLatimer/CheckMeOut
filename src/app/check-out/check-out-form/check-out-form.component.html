@@ -1,6 +1,6 @@
 <form *ngIf="isActive" class="m-5" id="checkoutInformationForm" [formGroup]="checkOutFormGroup" (ngSubmit)="formSubmitted($event)" #checkOutForm="ngForm">
   <!-- Bound to the directive ngForm. I guess just be instantiating the directive, it binds to the form instance automatically -->
-  <p class = "h4 text-center">{{this._solutionOrComponentTarget.name}}</p>
+  <p class = "h4 mb-3 text-center">{{this._solutionOrComponentTarget.Name}}</p>
   
   <mat-form-field class="mb-4" appearance="fill">
     <!--
