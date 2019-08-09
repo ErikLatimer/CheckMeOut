@@ -1,6 +1,6 @@
 import { PostGrestService } from './lib/post-grest.service';
 import { ScreenDimensionService } from './lib/screen-dimension.service';
-import { PassRequest, RegisterRequest, TokenRegistry, YellowBook } from './../lib/TokenInterfaces';
+import { PassRequest, RegisterRequest, TokenRegistry, YellowBook } from './lib/TokenInterfaces';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 
 @Component({
@@ -13,6 +13,8 @@ export class AppComponent implements OnInit{
   private readonly INITIAL_TOKEN_BEARER_NAME: string = "qrscanner";
   private registry: TokenRegistry = {};
   private registryYellowBook: YellowBook = {};
+
+  private _history: Array<string> = new Array<string>();
 
   public registryCopy: TokenRegistry = {};
 
@@ -34,6 +36,7 @@ export class AppComponent implements OnInit{
     if(name == this.INITIAL_TOKEN_BEARER_NAME) {
       console.log(`Handing off the initial token to bearer "${name}"`);
       this.registry[uuid] = true;
+      this._history.push(uuid);
     }
     else {this.registry[uuid] = false;}
     // Associate the tokenBearer name with it's uuid.
@@ -60,6 +63,7 @@ export class AppComponent implements OnInit{
     this.registry[uuid] = false;
     console.log(this.registryYellowBook[targetName]);
     this.registry[this.registryYellowBook[targetName]] = true;
+    this._history.push(this.registryYellowBook[targetName]);
     this.updateRegistryCopy();
   }
 
@@ -72,5 +76,36 @@ export class AppComponent implements OnInit{
     else { document.getElementById("root").style.overflow = "scroll"; }
     this.postgrestService.init();
   }
+
+  public onClickCheckOut(): void {
+    console.log("The user has clicked onClickCheckOut");
+    console.log("Navigating to QRScanner Component...");
+    this.navigateTo("qrscanner");
+  }
+
+  public navigateTo(tokenBearerName: string) {
+    const targetUUID: string = this.registryYellowBook[tokenBearerName];
+    if(this.registry[targetUUID]) {
+      console.log(`The user is already on the component with Token Bearer Name "${tokenBearerName}"`);
+    }
+    else {
+      this.registry[this._history[this._history.length-1]] = false;
+      this.registry[targetUUID] = true;
+      this._history.push(targetUUID);
+      console.log(`Navigating to component with Token Bearer UUID "${targetUUID}"`);
+      this.updateRegistryCopy();
+    }
+  }
+
+  public onClickBackNavigation():void {
+    if ((this._history.length-2) < 0) {console.log("Cannot perform back navigation. No component to navigate to...");}
+    else {
+      const targetUUID = this._history[this._history.length-2];
+      this.registry[this._history.pop()] = false;
+      this.registry[targetUUID] = true;
+      this.updateRegistryCopy();
+    }
+  }
+
   title = 'CheckMeOut';
 }

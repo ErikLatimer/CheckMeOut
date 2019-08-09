@@ -1,4 +1,4 @@
-interface ngClasses {
+interface NgClasses {
   [className: string]: boolean
 }
 
@@ -9,9 +9,9 @@ interface ngClasses {
  * [slot], the class that was previously populating said slot is automatically removed, and replaced by the proceeding class.
  * 
  */
-export class ngClassBinding {
-  public ngClassBinding: ngClasses = {};
-  constructor() {}
+export class NgClassBinding {
+  public binding: NgClasses;
+  constructor() {this.binding = {};}
   /**
    * @description Set a class to become active or inactive . If the class already exists, it overrides it's active setting
    * with the current parameter
@@ -20,22 +20,23 @@ export class ngClassBinding {
    * @returns void
    */
   public setClass(className: string, active: boolean): void {
-    this.ngClassBinding[className] = active;
+    this.binding[className] = active;
   }
   public resetClasses(): void {
-    this.ngClassBinding = {};
+    this.binding = {};
   }
   public removeClass(className: string): void {
-    if (typeof this.ngClassBinding[className] == "undefined") {
+    if (typeof this.binding[className] == "undefined") {
       console.warn(`Class "${className} does not exist on the current component.`);
       return;
     }
-    else {delete this.ngClassBinding[className];}
+    else {delete this.binding[className];}
   }
 
   public classIsActive(className: string): boolean {
-    if (typeof this.ngClassBinding[className] == "undefined") {return false;}
-    else if (!(this.ngClassBinding[className])) {return false;}
+    if (typeof this.binding[className] == "undefined") {return false;}
+    else if (!(this.binding[className])) {return false;}
     else {return true;}
   }
+
 }

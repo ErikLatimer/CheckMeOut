@@ -1,0 +1,6 @@
+#alert-error {
+  position: relative;
+  top: 10%;
+  left: 50%;
+  z-index: 4;
+}

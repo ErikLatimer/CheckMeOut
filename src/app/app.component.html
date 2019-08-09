@@ -1,7 +1,12 @@
 <!--The content below is only a placeholder and can be replaced.-->
       <mdb-navbar id="nav" SideClass="navbar navbar-expand-lg navbar-dark indigo" #navigationBar>
         <!-- Navbar brand -->
-        <mdb-navbar-brand><a class="navbar-brand" href="#">Navbar</a></mdb-navbar-brand>
+        <mdb-navbar-brand>
+          <a mdbBtn (click)="onClickBackNavigation()" size="sm" mdbWavesEffect>
+            <mdb-icon fas class="fa fa-lg" icon="arrow-left"></mdb-icon>
+          </a>
+          <a class="navbar-brand ml-3" href="#">Samsung SSC</a>
+        </mdb-navbar-brand>
 
         <!-- Collapsible content -->
         <links>
@@ -12,10 +17,10 @@
               <a class="nav-link waves-light" mdbWavesEffect>Home<span class="sr-only">(current)</span></a>
             </li>
             <li class="nav-item">
-              <a class="nav-link waves-light" mdbWavesEffect>Features</a>
+              <a class="nav-link waves-light" (click)="onClickCheckOut()" mdbWavesEffect>Scan</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link waves-light" mdbWavesEffect>Pricing</a>
+              <a class="nav-link waves-light" mdbWavesEffect>Submit Reservation</a>
             </li>
 
             <!-- Dropdown -->

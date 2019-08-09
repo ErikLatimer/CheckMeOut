@@ -1,6 +1,6 @@
 import uuidv4 from 'uuid/v4';
 import ratio from 'aspect-ratio';
-import { RegisterRequest, PassRequest, TokenRegistry } from './../../../lib/TokenInterfaces';
+import { RegisterRequest, PassRequest, TokenRegistry } from '../../lib/TokenInterfaces';
 import { Component, OnInit, Output, EventEmitter, Input, SimpleChanges, OnChanges, AfterViewChecked, DoCheck } from '@angular/core';
 import { ScreenDimensionService } from '../../lib/screen-dimension.service';
 import { PostGrestService } from './../../lib/post-grest.service';
@@ -46,6 +46,12 @@ export class QRScannerComponent extends DataHose implements OnInit {
   private isProcessing: boolean = false;
   public loading: boolean = false;
   public stopLoading: boolean = false;
+
+  public activateAlertError: boolean = false;
+  public animateAlertError: boolean = false;
+
+  private _originalNavbarHeight: number;
+  private _originalNavbarHeightIsSet: boolean = false;
 
 
 // Inject the ScreenDimensionService
@@ -257,8 +263,9 @@ export class QRScannerComponent extends DataHose implements OnInit {
     if (typeof resultingDocument == "undefined") {
       console.warn("Document not found under user query");
       console.log("Finished");
-      this.isProcessing = false;
       this.destroyLoader();
+      this.startError();
+      this.isProcessing = false;
       return undefined;
     }
     else if (resultingDocument) {
@@ -280,10 +287,12 @@ export class QRScannerComponent extends DataHose implements OnInit {
       return resultingDocument;
     }
     else {
-      console.error("A request error has occured");
+      // Throw an error alert on the screen 
+      console.error("A request error has occurred");
       console.log("Finished");
-      this.isProcessing = false;
       this.destroyLoader();
+      this.startError();
+      this.isProcessing = false;
       return null;
     }
     // The logic below is probably going to have to be in a callback most likely
@@ -295,17 +304,33 @@ export class QRScannerComponent extends DataHose implements OnInit {
   async activate() {
     console.log("Activating qrscanner...");
     //! Global variable
-    this.navbarHeight = document.getElementById(this.NAVBAR_ID).getBoundingClientRect().height;
+    if (!(this._originalNavbarHeightIsSet)) {
+      this._originalNavbarHeight = document.getElementById(this.NAVBAR_ID).getBoundingClientRect().height;
+      this._originalNavbarHeightIsSet = true;
+    }
+    console.log(document.getElementsByClassName("navbar-toggler"));
+    console.log(document.getElementsByClassName("navbar-toggler")[0]);
+    console.log(document.getElementsByClassName("navbar-toggler")[0].attributes);
+    console.log(document.getElementsByClassName("navbar-toggler")[0].attributes.getNamedItem("aria-expanded"));
+    console.log(document.getElementsByClassName("navbar-toggler")[0].attributes.getNamedItem("aria-expanded").value);
+    if(document.getElementsByClassName("navbar-toggler")[0].attributes.getNamedItem("aria-expanded").value == "true") {
+      console.log("Navbar currently expanded. Using old video height...");
+      if (typeof this._originalNavbarHeight == "undefined") {
+        console.log("original navbar height is undefined using the traditional way of setting navbar height...");
+        this.navbarHeight = document.getElementById(this.NAVBAR_ID).getBoundingClientRect().height;
+      }
+      else{this.navbarHeight = this._originalNavbarHeight;}
+    }
+    else {this.navbarHeight = document.getElementById(this.NAVBAR_ID).getBoundingClientRect().height;}
+    //this.navbarHeight = document.getElementById(this.NAVBAR_ID).getBoundingClientRect().height;
     this.enableStream();
     this.setCanvasDimensionsAndStyle();
     if (this.screenDimensionService.isOriental()) {
       console.log("QRComponent subscribed to orientation");
       this.screenDimensionService.subscribeToOrientationChange(()=>{this.resizeLayout();});
     }
-    else {
-      console.log("QRComponent subscribed to resize");
-      this.screenDimensionService.subscribeToResize(()=>{this.resizeLayout();});
-    }
+    console.log("QRComponent subscribed to resize");
+    this.screenDimensionService.subscribeToResize(()=>{this.resizeLayout();});
   }
 
 
@@ -374,6 +399,21 @@ export class QRScannerComponent extends DataHose implements OnInit {
     this.navbarHeight = document.getElementById(this.NAVBAR_ID).getBoundingClientRect().height;
     this.setVideoDimensions();
     this.setCanvasDimensionsAndStyle();
+  }
+
+
+  public startError(): void {
+    console.log("Start Error called...");
+    setTimeout(
+      function() {
+        this.activateAlertError = true;
+        this.animateAlertError = true;
+      }.bind(this),
+      /**
+       * When setting the Alert-error, the timeout needs to be present because we need to make sure the loader is initialized and destroyed before the
+       */
+      301
+    );
   }
 
   public destroyLoader() {

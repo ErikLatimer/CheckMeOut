@@ -7,7 +7,7 @@ import { PostGrestService } from './../../lib/post-grest.service';
 /**
  * This component utilizes the Material(Mat) Angular Software Kit to provide a calendar view date picker to the user within the checkout form.
  */
-import { RegisterRequest, PassRequest, TokenRegistry} from './../../../lib/TokenInterfaces';
+import { RegisterRequest, PassRequest, TokenRegistry} from '../../lib/TokenInterfaces';
 /**
  * This service is needed to receive the uuid of the document of interest, scanned by the qrScannerComponent
  */
@@ -121,7 +121,7 @@ export class CheckOutFormComponent extends DataSpout implements OnInit  {
      */
     this.checkOutFormGroup = new FormGroup( {
       'nameControl': new FormControl(null, Validators.required),
-      'destinationControl': new FormControl(null, Validators.required),
+      'purposeControl': new FormControl(null, Validators.required),
       'startDateControl': new FormControl(null, Validators.required),
       'endDateControl': new FormControl(null, Validators.required)
     });

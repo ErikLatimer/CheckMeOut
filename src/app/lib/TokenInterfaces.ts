@@ -1,4 +1,3 @@
-import { string_boolean_dictionary } from './string_boolean_Dictionary';
 export interface TokenRegistry {
   [TokenBearerUUID: string]: boolean
 }

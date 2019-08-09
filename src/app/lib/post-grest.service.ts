@@ -37,10 +37,10 @@ export class PostGrestService {
    * VII. Done
    */
 
-   private readonly HOST: string = "localhost";
-   private readonly PORT: number = 3000;
+   private readonly HOST: string = "localhost"; //"witty-monkey-41.localtunnel.me";//"labores.serveo.net"; //localhost
+   private readonly PORT: number = 3000;//443; //3000
    private readonly DEFAULT_TABLE: string = "ssc_inventory";
-   private readonly PROTOCOL: string = "http";
+   private readonly PROTOCOL: string = "http"; //https //http
 
   public constructor() { }
 
@@ -73,12 +73,24 @@ export class PostGrestService {
     console.log("​PostGrestService -> publicconstructor -> url", url);
     const header: Headers = new Headers();
     header.append('Accept', 'application/json');
+    //header.append('mode', 'cors');
     const requestInit: RequestInit = {
       method: 'GET',
       headers: header
-    };
-    const request: Request = new Request(url,requestInit);
-    const response: Response = await window.fetch(request);
+    };//("https://cors-anywhere.herokuapp.com/"+url)
+    const request: Request = new Request(url, requestInit);
+    let response: Response;
+    try {
+      response = await window.fetch(request);
+    } catch (error) {
+      if (error instanceof TypeError) {
+        console.error("ERROR trying to reach server or resolve host name. Error:");
+        console.log(error.name);
+        console.log(error.message);
+        console.log("Returning null...");
+        return null;
+      }
+    }
     /**
      * If the column doesn't exist, a response code of 400 is sent, meaning this if() statement doesn't get executed
      */
@@ -90,7 +102,7 @@ export class PostGrestService {
        * the value property will be of type undefined. We can read only once here with confidence because the body payload isn't that much data at all.
        */
       const chunkOfData: any = await streamReader.read();
-      /** Assuming chunkOfData is of string type... */
+      /** Assuming chunkOfData.value is of uInt8Array type... */
       const bodyContent: any = this._uInt8ArrayToString(chunkOfData.value);
       console.log("​PostGrestService -> publicconstructor -> bodyContent", bodyContent);
       // Knowing that the bodyContent is in Json string form of an array of objects that were returned from the query...
@@ -107,6 +119,7 @@ export class PostGrestService {
       return infoObject;
     }
     else if (response.status == 400) {
+      console.error("BAD REQUEST 400");
       /**
        * This could either mean a malformed request or the column with the specified conditions could not be found (or in other words does not exist). But in any event,
        * the request REACHED the server.
@@ -117,9 +130,10 @@ export class PostGrestService {
        * property evaluates to true, then the stream reader has reached the end of the stream. If the end of the stream is reached, it also means by default that
        * the value property will be of type undefined. We can read only once here with confidence because the body payload isn't that much data at all.
        */
+      // Assuming chunkOfData.value is of type uInt8Array...
       const chunkOfData: any = await streamReader.read();
-      /** Assuming chunkOfData is of string type... */
-      const bodyContent: string = chunkOfData.value;
+      const bodyContent: any = this._uInt8ArrayToString(chunkOfData.value);
+
       console.log("​PostGrestService -> publicconstructor -> bodyContent", bodyContent);
       /**
        * Knowing that an array of objects that match the attempted query aren't going to be returned because the request was bad, the contents of body should only
