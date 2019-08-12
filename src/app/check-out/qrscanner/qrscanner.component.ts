@@ -49,6 +49,8 @@ export class QRScannerComponent extends DataHose implements OnInit {
 
   public activateAlertError: boolean = false;
   public animateAlertError: boolean = false;
+  public typeOfAlertError: string = "alert-danger";
+  public textOfAlertError: string = "An error has occured";
 
   private _originalNavbarHeight: number;
   private _originalNavbarHeightIsSet: boolean = false;
@@ -259,18 +261,25 @@ export class QRScannerComponent extends DataHose implements OnInit {
 
   async processQRCode(qrCode: QRCode): Promise<Object> {
     
-    const resultingDocument: Object = await this.postgrestService.retrieveDocumentByUUID(qrCode.data);
+    const resultingDocument: Object = await this.postgrestService.retrieveDocumentByUUIDInventory(qrCode.data);
     if (typeof resultingDocument == "undefined") {
       console.warn("Document not found under user query");
       console.log("Finished");
       this.destroyLoader();
-      this.startError();
+      this.startError("alert-warning", "The qr code scanned isn't recognized within the system");
       this.isProcessing = false;
       return undefined;
     }
     else if (resultingDocument) {
       console.log("Results:");
       console.log(resultingDocument);
+
+      /**
+       * ! TO DO:
+       * ! ACCOUNT LOGIC AND CROSSING CHECKING WITH RESERVATIONS HERE
+       */
+
+
       console.log("Finished");
       setTimeout(function() {
         this.isProcessing = false;
@@ -291,7 +300,7 @@ export class QRScannerComponent extends DataHose implements OnInit {
       console.error("A request error has occurred");
       console.log("Finished");
       this.destroyLoader();
-      this.startError();
+      this.startError("alert-danger", "An error occurred while processing a request to the server");
       this.isProcessing = false;
       return null;
     }
@@ -401,19 +410,31 @@ export class QRScannerComponent extends DataHose implements OnInit {
     this.setCanvasDimensionsAndStyle();
   }
 
-
-  public startError(): void {
+  /**
+   * These are the only two methods you need to include to use the error components.
+   */
+  public startError(type: string, textForAlert: string): void {
     console.log("Start Error called...");
     setTimeout(
       function() {
+        this.typeOfAlert = type;
+        this.textOfAlertError = textForAlert;
         this.activateAlertError = true;
         this.animateAlertError = true;
+
       }.bind(this),
       /**
        * When setting the Alert-error, the timeout needs to be present because we need to make sure the loader is initialized and destroyed before the
+       * loading component
        */
       301
     );
+  }
+
+  public endError(event: EventEmitter<boolean>): void {
+    console.log("Animation for error ended event received, setting activateAlertError to false and animateAlertError to false...");
+    this.activateAlertError = false;
+    this.animateAlertError = false;
   }
 
   public destroyLoader() {

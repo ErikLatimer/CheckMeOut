@@ -1,5 +1,7 @@
+
 import { Component, OnInit, Input, Output, OnChanges, SimpleChanges, EventEmitter, SimpleChange } from '@angular/core';
 import { NgClassBinding } from './../NgClassBinding'; 
+import { ScreenDimensionService } from './../screen-dimension.service';
 
 @Component({
   selector: 'app-alert-error',
@@ -16,26 +18,40 @@ export class AlertErrorComponent implements OnInit {
   
   @Input() active: boolean = false; // This property is bound to the *ngIf of the div within it's template.
   @Input() text: string = "AN ERROR HAS OCCURRED"; // This property is interpolated to the text within the alert in the HTML template
+  @Input() alertType: string = "alert-danger"; // Defaults to alert-dange
   @Input() animationTypeIn: string = "fadeIn"; // Defaults to fadeIn
   @Input () animationTypeOut: string = "fadeOut" // Defaults to fadeOut
   @Input () animate: boolean = false;
-  //@Output () animationEnded: EventEmitter<boolean>;
+  @Output () animationEnded: EventEmitter<boolean> = new EventEmitter<boolean>();
 
   public ngClassBinding: NgClassBinding = new NgClassBinding();
-  private _ERROR_ALERT_TIME_MILLISECONDS = 3000;
+  private _ERROR_ALERT_TIME_MILLISECONDS = 3300;
+  private _FADE_OUT_TIME_MILLISECONDS = 1000;
 
+  public left: string;
+  public top: string;
 
-  constructor() { }
+  constructor(private _screenDimensionService: ScreenDimensionService) { }
 
   /**
    * Sense ngOnInit only happens once during the whole lifespan of a PWA, it sets the the initial classes of the app-alert-error element.
    */
   public ngOnInit(): void {
+
+    this._screenDimensionService.subscribeToOrientationChange(function () {
+      this._positionAlertErrorCheckMeOut();
+    }.bind(this));
+    this._screenDimensionService.subscribeToResize(function () {
+      this._positionAlertErrorCheckMeOut();
+    }.bind(this));
+    this._positionAlertErrorCheckMeOut();
+
+
     /**
      * The below section sets the necessary classes for the MDBoostrap css sheet to style our element as an alert.
      */
     this.ngClassBinding.setClass("alert", true);
-    this.ngClassBinding.setClass("alert-danger", true);
+    this.ngClassBinding.setClass(this.alertType, true);
     /**
      * Sets the animation type for the entry of the component. Sense ngOnInit only fires once, this is necessary because upon the first activation,
      *  we want the animation type to be set to entry, not exit.
@@ -51,9 +67,26 @@ export class AlertErrorComponent implements OnInit {
   }
 
   /**
+   * ONLY TWO METHODS NEEDED TO BE INCLUDED IN THE USING COMPONENT TO USE ALERT ERROR
+   * 
+   * public startError(): void {
+    console.log("Start Error called...");
+    this.activateAlertError = true;
+    this.animateAlertError = true;
+  }
+
+  public endError(event: EventEmitter<boolean>): void {
+    console.log("Animation for error ended event received, setting activateAlertError to false and animateAlertError to false...");
+    this.activateAlertError = false;
+    this.animateAlertError = false;
+  }
+   */
+
+  /**
    * Searched for changes ANY of the variables, and performs logic according to those changes. The component will first look for a change in active, because
    * you don't want to animate something and have the animation play out BEFORE it's even displayed. Then, it checks to see if the text for the alert that is to
    * be displayed within the alert has changed, because besides the alert actually displaying, the second most important thing is to display the right text.
+   * Next it checks the type of alert.
    * Then, it look for a change in animationTypeIn, because you don't want to add the <animated> class before you have the right animation lined up or
    * else you will begin the animation playing the wrong type of animation. Then it checks animationTypeOut for the same reason. Finally, check
    * the animate variable to begin component animation.
@@ -72,13 +105,30 @@ export class AlertErrorComponent implements OnInit {
       // Look for a change in active
       if (propertyName == "active") {
         console.log(`Alert-Error activated status has went from "${simpleChange.previousValue}" to "${simpleChange.currentValue}"`);
-        if (simpleChange.currentValue) {console.log("Alert-Error component activated.");}
+        if (simpleChange.currentValue) {
+          console.log("Alert-Error component activated.");
+          console.log("Setting the timeout for it's deactivation...");
+          // Use onAnimation End function to deactivate timer...
+          setTimeout(function() {
+            this.onAnimationEnd();
+          }.bind(this),this._ERROR_ALERT_TIME_MILLISECONDS);
+        }
         else {console.log("Alert-Error component deactivated.");}
       }
       // Look for a change in text
       if (propertyName == "text") {
         console.log(`Alert-Error text has changed from "${simpleChange.previousValue}" to "${simpleChange.currentValue}"`);
       }
+
+      // Look for a change in the Alert type
+      if (propertyName == "alertType") {
+        const classStatus = this.ngClassBinding.classIsActive(simpleChange.previousValue);
+        this.ngClassBinding.removeClass(simpleChange.previousValue);
+        // ...and then replaced with the new, current alert type.
+        this.ngClassBinding.setClass(simpleChange.currentValue, classStatus);
+        console.log(`Alert-Error type changed from "${simpleChange.previousValue}" to "${simpleChange.currentValue}"`);
+      }
+
       // Now look for a change in animation type in...
       if (propertyName == "animationTypeIn") {
         /**
@@ -122,25 +172,45 @@ export class AlertErrorComponent implements OnInit {
      * First, sets a fade out animation the occur after a set amount of time for the user to view the message. Also, destroys the initial
      * animation, because the value of the class changed.
      */
-    setTimeout( function() {
       // After a set number of milliseconds...
       // If the TypeIn animation just finished up...
       if ( this.ngClassBinding.classIsActive(this.animationTypeIn) ) {
         // Then remove the animationTypeIn class and replace with the animationTypeOut class
         this.ngClassBinding.setClass(this.animationTypeIn, false);
         this.ngClassBinding.setClass(this.animationTypeOut, true);
+        setTimeout(function() {
+          this.onAnimationEnd();
+        }.bind(this), this._FADE_OUT_TIME_MILLISECONDS);
       }
       else if (this.ngClassBinding.classIsActive(this.animationTypeOut)) {
         // If the TypeOut animation just finished up...
         // Then remove the animationTypeOut class and replace with the animationTypeIn class
-        this.ngClassBinding.setClass(this.animationTypeIn, false);
-        this.ngClassBinding.setClass(this.animationTypeOut, true);
+        this.ngClassBinding.setClass(this.animationTypeIn,true);
+        this.ngClassBinding.setClass(this.animationTypeOut, false);
         // ...and then set the alert component to inactive
         console.log("Setting the active property of the Alert-Error component manually to false");
         this.active = false;
         this.animate = false;
+        // Emitting animationEnded...
+        console.log("Emitting animation ended...");
+        this.animationEnded.emit(true);
       }
-    }.bind(this),this._ERROR_ALERT_TIME_MILLISECONDS);
+
+  }
+
+  private _positionAlertErrorCheckMeOut() {
+    this.left = `${this._screenDimensionService.getInnerWindowWidth() / 2}px`
+		//console.log("​AlertErrorComponent -> private_positionAlertErrorCheckMeOut -> this._screenDimensionService.getInnerWindowWidth() / 2", this._screenDimensionService.getInnerWindowWidth() / 2);
+    //this.left = `${document.getElementById("qrScannerContainer").getBoundingClientRect().width / 2}px`;
+    //console.log("​AlertErrorComponent -> private_positionAlertErrorCheckMeOut -> document.getElementById(\"qrScannerContainer\").getBoundingClientRect().width", document.getElementById("qrScannerContainer").getBoundingClientRect().width);
+    
+    //console.log("​AlertErrorComponent -> private_positionAlertErrorCheckMeOut -> this.left", this.left);
+    
+    /**
+    this.top = `${document.getElementById("qrScannerContainer").getBoundingClientRect().height * 0.10}px`;
+		console.log("​AlertErrorComponent -> private_positionAlertErrorCheckMeOut -> document.getElementById(\"qrScannerContainer\").getBoundingClientRect().height", document.getElementById("qrScannerContainer").getBoundingClientRect().height);
+    console.log("​AlertErrorComponent -> private_positionAlertErrorCheckMeOut -> this.top", this.top);
+    **/
   }
 
 }

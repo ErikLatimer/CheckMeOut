@@ -1,4 +1,4 @@
-<div class="row" *ngIf="isActive">
+<div class="row" id="qrScannerContainer" *ngIf="isActive">
     <div class="col-12" id="liveFeedDiv" style="font-size: 0;">
         <video id="liveFeed" autoplay playsinline [srcObject]="videoFeedSource" [height]="videoHeight"></video>
         <canvas canvasDriver id="qrCodeZone" [style.border]="canvasStyle" [width]="canvasWidth" [height]="canvasHeight"></canvas>
@@ -9,6 +9,6 @@
         
     </div>
     <app-loading [init]="loading" [destroy]="stopLoading"></app-loading>
-    <app-alert-error [active]="activateAlertError" [animate]="animateAlertError"></app-alert-error>
+    <app-alert-error [active]="activateAlertError" [text]="textOfAlertError" [alertType]="typeOfAlert" [animate]="animateAlertError" (animationEnded)="endError($event)"></app-alert-error>
 </div>
 <!-- You have to set the controls to true if you want it to work on ios -->

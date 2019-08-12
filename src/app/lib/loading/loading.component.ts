@@ -37,9 +37,9 @@ export class LoadingComponent implements OnInit {
   public ngOnInit() {
     // Set part of the style string to display:none
     this.styleDisplayString = "none";
-    this._updateLoaderPosition();
-    if (this._screenDimensionService.isOriental){this._screenDimensionService.subscribeToOrientationChange(function() {this._updateLoaderPosition();}.bind(this));}
-    else{this._screenDimensionService.subscribeToResize(function() {this._updateLoaderPosition();}.bind(this));}
+    if (this._screenDimensionService.isOriental()){this._screenDimensionService.subscribeToOrientationChange(function() {this._updateLoaderPositionCheckMeOut();}.bind(this));}
+    this._screenDimensionService.subscribeToResize(function() {this._updateLoaderPositionCheckMeOut();}.bind(this));
+    this._updateLoaderPositionCheckMeOut();
   }
   
 
@@ -49,7 +49,13 @@ export class LoadingComponent implements OnInit {
    * access. Please refrain from using direct DOM access as this is not good practice in Angular, and should be avoided. Angular
    * provides ways to do this.
    */
-  private _updateLoaderPosition() {
+  private _updateLoaderPositionCheckMeOut() {
+    // 112px == 8REM
+    this.styleLeftString = `${(this._screenDimensionService.getInnerWindowWidth() / 2) - (112 / 2)}px`;
+		//console.log("​LoadingComponent -> private_updateLoaderPosition -> this.styleLeftString", this.styleLeftString);
+    this.styleTopString = `-${112 / 2}px`;
+		//console.log("​LoadingComponent -> private_updateLoaderPosition -> this.styleTopString", this.styleTopString);
+    /**
     if (
       (this._screenDimensionService.getOrientation() == this._screenDimensionService.LANDSCAPE_PRIMARY) ||
       (this._screenDimensionService.getOrientation() == this._screenDimensionService.LANDSCAPE_SECONDARY) 
@@ -72,7 +78,7 @@ export class LoadingComponent implements OnInit {
       this.styleLeftString = "250%";
       this.styleTopString = "-50%";
     }
-    
+    **/
   }
 
   public ngOnChanges(changes: SimpleChanges) {
